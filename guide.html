@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#3B5BDB">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>班级助手 · 使用说明</title>
+<style>
+:root{
+  --pri:#3B5BDB; --pri-l:#5C7CFA; --pri-soft:#EDF1FE;
+  --teal:#0CA678; --teal-soft:#E3F7F0;
+  --amber:#E8920C; --amber-soft:#FDF3E1;
+  --rose:#E03131; --rose-soft:#FDECEC;
+  --bg:#F5F7FB; --card:#fff; --fg:#182135; --fg2:#3D4966; --muted:#7C89A3; --line:#E8ECF4;
+  --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","HarmonyOS Sans SC","Noto Sans CJK SC","Microsoft YaHei",system-ui,sans-serif;
+  background:var(--bg);color:var(--fg);font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased;
+  padding:calc(var(--safe-t) + 0px) 0 calc(var(--safe-b) + 40px);
+}
+.wrap{max-width:720px;margin:0 auto;padding:0 16px}
+header{
+  background:linear-gradient(150deg,#4C6EF5 0%,#3B5BDB 55%,#364FC7 100%);
+  color:#fff;padding:calc(var(--safe-t) + 30px) 16px 30px;position:relative;overflow:hidden;
+}
+header::before{content:"";position:absolute;right:-40px;top:-60px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.10)}
+header::after{content:"";position:absolute;left:-60px;bottom:-80px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.07)}
+header .in{max-width:720px;margin:0 auto;position:relative}
+header .badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);border-radius:999px;padding:4px 12px;font-size:12.5px;font-weight:600;backdrop-filter:blur(6px)}
+header h1{margin:12px 0 6px;font-size:26px;font-weight:800;letter-spacing:.3px}
+header p{margin:0;font-size:14.5px;opacity:.9;line-height:1.7}
+main{padding-top:18px}
+.card{background:var(--card);border-radius:20px;padding:18px 18px;margin-bottom:14px;box-shadow:0 1px 3px rgba(24,33,53,.05),0 6px 18px rgba(24,33,53,.05)}
+.card h2{margin:0 0 12px;font-size:17.5px;font-weight:700;display:flex;align-items:center;gap:9px}
+.card h2 .n{
+  width:28px;height:28px;border-radius:9px;flex:none;display:flex;align-items:center;justify-content:center;
+  background:var(--pri);color:#fff;font-size:14px;font-weight:800;
+}
+.card h2 .em{font-size:20px}
+.step{display:flex;gap:12px;padding:12px 0;border-bottom:.5px solid var(--line)}
+.step:last-child{border-bottom:none}
+.step .num{
+  width:26px;height:26px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;
+  background:var(--pri-soft);color:var(--pri);font-size:13px;font-weight:800;margin-top:3px;
+}
+.step .body{flex:1;min-width:0}
+.step .body b{display:block;font-size:15.5px;font-weight:700;margin-bottom:2px}
+.step .body span{font-size:14px;color:var(--fg2);line-height:1.7}
+.tip{background:var(--pri-soft);border-left:3px solid var(--pri);border-radius:0 10px 10px 0;padding:10px 13px;font-size:14px;color:var(--fg2);line-height:1.7;margin-top:12px}
+.warn{background:var(--rose-soft);border-left:3px solid var(--rose);border-radius:0 10px 10px 0;padding:10px 13px;font-size:14px;color:#8A1F1F;line-height:1.75;margin-top:12px}
+.ok{background:var(--teal-soft);border-left:3px solid var(--teal);border-radius:0 10px 10px 0;padding:10px 13px;font-size:14px;color:#0A5C45;line-height:1.75;margin-top:12px}
+.amber{background:var(--amber-soft);border-left:3px solid var(--amber);border-radius:0 10px 10px 0;padding:10px 13px;font-size:14px;color:#7A4A00;line-height:1.75;margin-top:12px}
+ul,ol{margin:8px 0 0;padding-left:22px}
+li{margin-bottom:6px;font-size:14.5px;color:var(--fg2);line-height:1.75}
+code{background:#F0F3F9;border-radius:5px;padding:1px 6px;font-size:13.5px;font-family:ui-monospace,Menlo,Consolas,monospace;color:var(--pri)}
+.kv{display:flex;gap:8px;padding:9px 0;border-bottom:.5px solid var(--line);font-size:14.5px;align-items:flex-start}
+.kv:last-child{border-bottom:none}
+.kv .k{flex:none;width:104px;color:var(--muted);font-size:13.5px}
+.kv .v{flex:1;min-width:0;color:var(--fg)}
+.kv .v b{color:var(--fg)}
+.pill{display:inline-block;background:var(--pri-soft);color:var(--pri);border-radius:999px;padding:1px 9px;font-size:12.5px;font-weight:700;margin:0 3px 3px 0}
+.pill.g{background:var(--teal-soft);color:var(--teal)}
+.pill.a{background:var(--amber-soft);color:var(--amber)}
+.pill.r{background:var(--rose-soft);color:var(--rose)}
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:8px}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:#F5F8FC;font-weight:700;color:var(--fg2);font-size:13px}
+footer{text-align:center;font-size:12.5px;color:var(--muted);padding:8px 16px 0;line-height:1.9}
+.big{font-size:15px}
+@media print{
+  header{background:#fff;color:#000;padding:0 0 14px}
+  header::before,header::after{display:none}
+  body{background:#fff;font-size:11pt}
+  .card{box-shadow:none;border:1px solid var(--line);page-break-inside:avoid}
+  @page{size:A4;margin:14mm}
+}
+</style>
+</head>
+<body>
+<header><div class="in">
+  <span class="badge">📘 使用说明 · 建议先读一遍</span>
+  <h1>班级助手</h1>
+  <p>班主任 + 数学老师的随身工作台<br>成绩分析 · 临界生 · 错题归因 · 重点关注 · 一键报告</p>
+</div></header>
+
+<main class="wrap">
+
+  <div class="card">
+    <h2><span class="em">🎁</span>这是给你的</h2>
+    <p style="margin:0;font-size:14.5px;color:var(--fg2)">这个工具帮你把班上的成绩、错题、考勤、积分管起来，并且<b>数据只存在你自己的手机/电脑里，不上传任何服务器</b>。不用注册、不用登录。</p>
+    <div class="ok">它是一个完整的小软件，<b>不需要安装、不需要下载</b>。打开下面的网址就能用。</div>
+  </div>
+
+  <div class="card">
+    <h2><span class="em">🚪</span>两个入口</h2>
+    <p style="margin:0 0 10px;font-size:14.5px;color:var(--fg2)">我把两个版本都放在这里，你按设备选：</p>
+    <div class="step"><div class="num">📱</div><div class="body">
+      <b>手机上用这个</b>
+      <span><a href="app.html" style="font-weight:700">打开手机版 → 班级助手</a><br>
+      界面是为手机重新做的，底部有 5 个标签，适合随手记、考试后看名单。</span>
+    </div></div>
+    <div class="step"><div class="num">💻</div><div class="body">
+      <b>电脑上用这个</b>
+      <span><a href="desktop.html" style="font-weight:700">打开电脑版 → 班级教学仪表盘</a><br>
+      屏幕大，适合导成绩、看表格、批量出报告、打印。</span>
+    </div></div>
+    <div class="tip">两个版本<b>数据是各存各的</b>，需要互通时用「导出加密备份 / 导入备份」搬运，见第 3 节。<br>
+    两边用的是同一套统计口径和同一套加密格式，备份文件可以互相导入。</div>
+  </div>
+
+  <div class="card">
+    <h2><span class="n">1</span>第一次打开（3 步）</h2>
+    <div class="step"><div class="num">1</div><div class="body">
+      <b>用浏览器打开上面的网址</b>
+      <span>iPhone 一定用 <b>Safari</b>；安卓用 <b>Chrome 或 Edge</b>。<br>
+      别在微信里点开——微信会把网页放进它内置的浏览器，加到主屏幕和数据保存都会出问题。</span>
+    </div></div>
+    <div class="step"><div class="num">2</div><div class="body">
+      <b>添加到主屏幕（重要）</b>
+      <span>iPhone：点底部中间的 <b>分享按钮</b>（方框加箭头）→ 往下滑找到「<b>添加到主屏幕</b>」→ 添加。<br>
+      安卓 Chrome：点右上角 <b>⋮</b> → 「<b>添加到主屏幕</b>」。</span>
+    </div></div>
+    <div class="step"><div class="num">3</div><div class="body">
+      <b>从桌面图标打开，设一个密码</b>
+      <span>至少 4 位。这个密码用来加密数据，只存在你设备上，<b>别人看不到</b>。</span>
+    </div></div>
+    <div class="ok"><b>为什么要「添加到主屏幕」？</b>加到主屏后是一个独立的应用，全屏没有地址栏，也不会被浏览器当成普通网页清理掉——<b>数据保存更稳</b>。</div>
+    <div class="warn"><b>请牢记这个密码。</b>它是解密数据的唯一钥匙，忘了就<b>打不开数据了</b>，没有任何后门。建议同时导出一份加密备份（见第 3 节）。</div>
+  </div>
+
+  <div class="card">
+    <h2><span class="n">2</span>日常怎么用（4 个动作）</h2>
+    <p style="margin:0 0 4px;font-size:14.5px;color:var(--fg2)">第一次用先点「<b>导学生名单</b>」，从 Excel 里框选名单复制，粘贴进去就行，它会自动认列名。</p>
+    <div class="step"><div class="num">①</div><div class="body">
+      <b>导名单（只做一次）</b>
+      <span>学生档案 → 导入学生信息表 → 从 Excel 粘贴。学号、姓名、性别、生日、家长电话，有几列认几列。</span>
+    </div></div>
+    <div class="step"><div class="num">②</div><div class="body">
+      <b>每次考完试：导成绩</b>
+      <span>顶部「＋ 新建考试」→ 成绩页「录入」→「<b>整列粘贴</b>」，把 Excel 里的分数一列列贴进来。也可以点格子手输。</span>
+    </div></div>
+    <div class="step"><div class="num">③</div><div class="body">
+      <b>想深挖数学：登记题号表</b>
+      <span>成绩页 →「设置」→ 题号表，每行写 <code>题号,满分,知识板块,说明</code>。登记后就能自动算出<b>每题难度 P、区分度 D</b>，还有<b>知识板块掌握度热力图</b>——哪个板块全班最弱一眼就看到。</span>
+    </div></div>
+    <div class="step"><div class="num">④</div><div class="body">
+      <b>每次考完后看三样东西</b>
+      <span>
+        <span class="pill r">重点关注</span>哪些学生成绩在下滑 + 有其它信号，决定找谁谈话<br>
+        <span class="pill a">临界生</span>离目标线差几分的踩线生<br>
+        <span class="pill g">教学 → 题目 P/D</span>得分率最低的 5 题，按这个顺序讲评<br>
+        最后去「教学 → 试卷报告」一键生成可打印的分析报告。
+      </span>
+    </div></div>
+    <div class="tip">错题本建议让学生自己登记（或你抽空录）：<b>关键不是记了多少题，而是错因结构的变化</b>。工具会画出「错因随时间迁移」曲线——如果「概念不清」在减少、「计算失误」在增加，说明理解已经过关，剩下是熟练度问题，这是很典型的进步信号。</div>
+  </div>
+
+  <div class="card">
+    <h2><span class="n">3</span>两台设备怎么互通（电脑 ⇄ 手机）</h2>
+    <p style="margin:0;font-size:14.5px;color:var(--fg2)">因为数据是<b>各存各的</b>（这也是最安全的做法），电脑和手机之间靠<b>加密备份文件</b>搬运：</p>
+    <table>
+      <tr><th style="width:96px">步骤</th><th>操作</th></tr>
+      <tr><td><b>电脑 → 手机</b></td><td>电脑上「设置/我的 → 备份」→ <b>导出加密备份</b>，得到一个 <code>.cls.json</code> 文件 → 用微信发给自己 → 手机上打开工具 →「导入备份」→ 选这个文件 → 输入备份密码</td></tr>
+      <tr><td><b>手机 → 电脑</b></td><td>反过来做一次即可（手机上导出，微信发给自己，电脑上导入）</td></tr>
+    </table>
+    <div class="amber"><b>注意方向：导入会覆盖当前设备的数据。</b>建议固定用一台设备做「主设备」录入，另一台只是查看；或者每次同步前先在两台都导出一份，免得覆盖错。</div>
+    <div class="tip"><b>备份密码可以和登录密码不一样</b>，但一定要记住。备份文件是加密的，别人拿到也打不开。</div>
+  </div>
+
+  <div class="card">
+    <h2><span class="n">4</span>遇到问题怎么办</h2>
+    <table>
+      <tr><th style="width:38%">现象</th><th>怎么处理</th></tr>
+      <tr><td>在微信里点开，界面怪怪的 / 数据存不住</td><td>微信内置浏览器有限制。<b>点右上角「⋯」→「在浏览器打开」</b>，或者直接复制网址到 Safari / Chrome 打开。</td></tr>
+      <tr><td>弹红色提示条「当前无法保存数据」</td><td>先<b>导出加密备份</b>保住数据，再换浏览器重新打开、导入备份。</td></tr>
+      <tr><td>弹「本地存储不可用」</td><td><b>数据没丢</b>，只是这个浏览器不让存。换 Safari / Chrome 重新打开。<br>如果是无痕模式，换成普通窗口。</td></tr>
+      <tr><td>iPhone 上加不了主屏幕</td><td>确认是用 <b>Safari</b> 打开的（Chrome 在 iOS 上不支持加主屏）。分享按钮是底部中间那个<b>方框+向上箭头</b>。</td></tr>
+      <tr><td>打不开 / 白屏</td><td>检查网址有没有输错；或者换个网络试试。还不行就告诉我。</td></tr>
+      <tr><td>换手机 / 换电脑了</td><td>重新打开网址 → 导入之前导出的加密备份。见第 3 节。</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2><span class="n">5</span>关于隐私（可以放心）</h2>
+    <div class="kv"><div class="k">数据存在哪</div><div class="v">只存在你自己的手机/电脑里，加密保存（AES-256-GCM）。<b>不上传任何服务器、不需要联网。</b></div></div>
+    <div class="kv"><div class="k">我能看到吗</div><div class="v">看不到。密码只在你手上，没有后门。</div></div>
+    <div class="kv"><div class="k">不收集什么</div><div class="v">身份证号、人脸指纹、家庭住址、家庭收入——这些<b>都不要填</b>，工具也不需要。</div></div>
+    <div class="kv"><div class="k">为什么不提供云同步</div><div class="v">学生信息属于敏感个人信息，把姓名、成绩、家长电话上传到服务器有合规风险。<b>本地保存反而最省心。</b></div></div>
+    <div class="kv"><div class="k">排名能公开吗</div><div class="v">不能。《未成年人学校保护规定》明确教师不得公开学生考试成绩和排名。所以「重点关注」「临界生」这些名单是<b>给你自己看的内部材料</b>，别发到班级群或家长群，也别投屏。</div></div>
+    <div class="kv"><div class="k">家长会能发什么</div><div class="v">「学生成长报告」是一人一页的，<b>只发给对应家长本人</b>，不要把全班的报告打包发群里。</div></div>
+  </div>
+
+  <div class="card">
+    <h2><span class="em">📌</span>三个最重要的提醒</h2>
+    <div class="step"><div class="num">1</div><div class="body"><b>每周导出一次加密备份</b><span>工具超过 7 天没备份会提醒你。清理浏览器数据、卸载浏览器、换手机都会让数据消失，有备份就不怕。</span></div></div>
+    <div class="step"><div class="num">2</div><div class="body"><b>密码千万别忘</b><span>忘了解不开，没有找回功能。</span></div></div>
+    <div class="step"><div class="num">3</div><div class="body"><b>学生毕业或你不带这个班了</b><span>到「设置 → 数据管理」执行一次「彻底删除全部数据」，并删掉所有备份文件。这是《个人信息保护法》要求的最小必要原则。</span></div></div>
+  </div>
+
+  <div class="card">
+    <h2><span class="em">💡</span>几个好用小功能</h2>
+    <div class="kv"><div class="k">统计口径能改</div><div class="v">及格线/优秀线/低分线默认 60%/85%/40%，但这是教研上的常见口径，<b>不是广州市统一规定</b>。按你们学校的标准在「设置 → 阈值」里改。</div></div>
+    <div class="kv"><div class="k">任教科目可切换</div><div class="v">工具是<b>跨年级通用</b>的。七年级/八年级/九年级的科目表和知识板块能一键套用，任教科目点科目名就能切换。</div></div>
+    <div class="kv"><div class="k">期中期末一键出报告</div><div class="v">「教学 → 试卷报告」出班级分析报告（含自动生成的讲评顺序建议）；学生档案里点右上角出个人成长报告。</div></div>
+    <div class="kv"><div class="k">家长沟通稿</div><div class="v">学生档案 →「沟通」→ 自动生成一段话术（含成绩变化、作业、错因），改一改直接复制到微信。</div></div>
+    <div class="kv"><div class="k">评语草稿</div><div class="v">学生档案 →「生成草稿」→ 根据这个学生的数据自动写一段期末评语，你改一改就能用。</div></div>
+    <div class="kv"><div class="k">先看示例数据</div><div class="v">第一次打开可以点「载入示例数据」（42 名虚构学生、3 次考试），先把各个界面摸熟，再清掉导自己的。清掉在「设置 → 数据管理」。</div></div>
+  </div>
+
+  <footer>
+    班级助手 · 单文件离线版<br>
+    如有问题随时问我，工具可以按你的实际需要继续改
+  </footer>
+</main>
+</body>
+</html>
