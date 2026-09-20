@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#3B5BDB">
+<title>PDF 转 Word · 本地版</title>
+<style>
+:root{
+  --pri:#3B5BDB; --pri-l:#5C7CFA; --pri-soft:#EDF1FE;
+  --teal:#0CA678; --teal-soft:#E3F7F0;
+  --amber:#E8920C; --amber-soft:#FDF3E1;
+  --rose:#E03131; --rose-soft:#FDECEC;
+  --bg:#F5F7FB; --card:#fff; --fg:#182135; --fg2:#3D4966; --muted:#7C89A3; --line:#E8ECF4;
+  --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","HarmonyOS Sans SC","Noto Sans CJK SC","Microsoft YaHei",system-ui,sans-serif;
+  background:var(--bg);color:var(--fg);font-size:16px;line-height:1.7;-webkit-font-smoothing:antialiased;
+  padding:calc(var(--safe-t)) 0 calc(var(--safe-b) + 40px)}
+.wrap{max-width:820px;margin:0 auto;padding:0 16px}
+header{background:linear-gradient(150deg,#4C6EF5 0%,#3B5BDB 55%,#364FC7 100%);color:#fff;
+  padding:calc(var(--safe-t) + 28px) 16px 26px;position:relative;overflow:hidden}
+header::before{content:"";position:absolute;right:-40px;top:-60px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.10)}
+header .in{max-width:820px;margin:0 auto;position:relative}
+header h1{margin:0 0 6px;font-size:24px;font-weight:800;letter-spacing:.3px}
+header p{margin:0;font-size:14px;opacity:.92;line-height:1.7}
+header .tag{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);border-radius:999px;
+  padding:4px 12px;font-size:12.5px;font-weight:600;margin-bottom:12px;backdrop-filter:blur(6px)}
+main{padding-top:16px}
+.card{background:var(--card);border-radius:20px;padding:18px;margin-bottom:14px;box-shadow:0 1px 3px rgba(24,33,53,.05),0 6px 18px rgba(24,33,53,.05)}
+.card h2{margin:0 0 12px;font-size:17px;font-weight:700;display:flex;align-items:center;gap:8px}
+.drop{border:2.5px dashed #C9D4E8;border-radius:16px;padding:34px 18px;text-align:center;cursor:pointer;transition:all .18s;background:#FAFBFD}
+.drop:hover,.drop.over{border-color:var(--pri);background:var(--pri-soft)}
+.drop .di{font-size:38px;line-height:1;margin-bottom:10px}
+.drop b{display:block;font-size:16.5px;margin-bottom:5px}
+.drop span{font-size:13.5px;color:var(--muted)}
+.drop .hint2{margin-top:12px;font-size:12.5px;color:var(--muted);line-height:1.6}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:12px 18px;border-radius:13px;
+  font-size:15px;font-weight:700;background:var(--pri);color:#fff;border:none;cursor:pointer;transition:transform .12s,filter .15s;font-family:inherit}
+.btn:active{transform:scale(.975)}
+.btn:hover{filter:brightness(1.08)}
+.btn.block{width:100%}
+.btn.sm{padding:9px 14px;font-size:13.5px;border-radius:11px}
+.btn.ghost{background:var(--pri-soft);color:var(--pri)}
+.btn.grey{background:#EFF2F7;color:var(--fg2)}
+.btn.teal{background:var(--teal)}
+.btn.line{background:#fff;border:1.5px solid var(--line);color:var(--fg2)}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.row{display:flex;gap:9px;flex-wrap:wrap}
+.row>*{flex:1;min-width:118px}
+.stat{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.stat .s{background:var(--card);border-radius:14px;padding:11px 13px;box-shadow:0 1px 3px rgba(24,33,53,.05)}
+.stat .s .k{font-size:11.5px;color:var(--muted)}
+.stat .s .v{font-size:19px;font-weight:800;line-height:1.3}
+.stat .s .v small{font-size:11.5px;font-weight:600;color:var(--muted)}
+#prev{background:#fff;border-radius:14px;padding:16px;min-height:220px;max-height:60vh;overflow:auto;
+  border:1px solid var(--line);font-size:15px;line-height:1.9;white-space:pre-wrap;word-break:break-word}
+#prev:focus{outline:2px solid var(--pri-l);outline-offset:2px}
+.bar{height:8px;border-radius:5px;background:#EEF1F7;overflow:hidden;margin:10px 0}
+.bar>i{display:block;height:100%;background:var(--pri);width:0;transition:width .25s;border-radius:5px}
+.note{background:var(--pri-soft);border-left:3px solid var(--pri);border-radius:0 10px 10px 0;padding:10px 13px;font-size:13.5px;color:var(--fg2);line-height:1.7;margin-top:12px}
+.warn{background:var(--amber-soft);border-left:3px solid var(--amber);border-radius:0 10px 10px 0;padding:10px 13px;font-size:13.5px;color:#7A4A00;line-height:1.75;margin-top:12px}
+.ok{background:var(--teal-soft);border-left:3px solid var(--teal);border-radius:0 10px 10px 0;padding:10px 13px;font-size:13.5px;color:#0A5C45;line-height:1.75;margin-top:12px}
+.err{background:var(--rose-soft);border-left:3px solid var(--rose);border-radius:0 10px 10px 0;padding:10px 13px;font-size:13.5px;color:#8A1F1F;line-height:1.75;margin-top:12px}
+ul{margin:8px 0 0;padding-left:20px}
+li{font-size:14px;color:var(--fg2);line-height:1.8;margin-bottom:4px}
+.kv{display:flex;gap:10px;padding:8px 0;border-bottom:.5px solid var(--line);font-size:14px}
+.kv:last-child{border-bottom:none}
+.kv .k{flex:none;width:104px;color:var(--muted);font-size:13px}
+.kv .v{flex:1;min-width:0}
+code{background:#F0F3F9;border-radius:5px;padding:1px 6px;font-size:13.5px;font-family:ui-monospace,Menlo,Consolas,monospace;color:var(--pri)}
+.files{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.fitem{display:flex;align-items:center;gap:10px;background:#F7F9FC;border-radius:12px;padding:10px 13px;font-size:14px}
+.fitem .n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fitem .st{font-size:12.5px;font-weight:700;flex:none;color:var(--muted)}
+.fitem .st.done{color:var(--teal)}
+.fitem .st.working{color:var(--pri)}
+.fitem .st.fail{color:var(--rose)}
+</style>
+</head>
+<body>
+
+
+<header><div class="in">
+  <div class="tag">🔒 全程本地处理 · 不联网 · 不上传</div>
+  <h1>PDF 转 Word</h1>
+  <p>把 PDF 里的文字提取出来，导出成 WPS / Word 可以编辑的格式。<br>文件一直在你电脑或手机上，不会传到任何服务器。</p>
+</div></header>
+
+<main class="wrap">
+
+  <div id="statBox" class="stat" style="display:none">
+    <div class="s"><div class="k">页数</div><div class="v" id="sPages">—</div></div>
+    <div class="s"><div class="k">提取字数</div><div class="v" id="sChars">—</div></div>
+    <div class="s"><div class="k">段落数</div><div class="v" id="sParas">—</div></div>
+  </div>
+
+  <div class="card">
+    <h2>📄 选择 PDF 文件</h2>
+    <div class="drop" id="drop">
+      <div class="di">📥</div>
+      <b>点这里选文件，或把 PDF 拖进来</b>
+      <span>支持一次选多个 PDF，会按顺序合并成一个文档</span>
+      <div class="hint2">文字版 PDF 效果最好 · 扫描件（整页是图片）提取不到文字，见页面底部说明</div>
+    </div>
+    <input type="file" id="fi" accept=".pdf,application/pdf" multiple style="display:none">
+    <div class="files" id="fileList"></div>
+    <div class="bar" id="pbar" style="display:none"><i id="pbarIn"></i></div>
+    <button class="btn block" id="btnConvert" style="margin-top:14px" disabled>开始提取文字</button>
+    <div id="msg"></div>
+  </div>
+
+  <div class="card" id="optCard" style="display:none">
+    <h2>⚙️ 排版选项</h2>
+    <div class="kv"><div class="k">段落合并</div><div class="v">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+        <input type="checkbox" id="optMerge" checked>
+        <span style="font-size:14px">把同一段被 PDF 拆散的行合并成一段（推荐）</span></label>
+    </div></div>
+    <div class="kv"><div class="k">去掉页眉页脚</div><div class="v">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+        <input type="checkbox" id="optHeader">
+        <span style="font-size:14px">自动删掉每页重复出现的行、页码、装饰线</span></label>
+    </div></div>
+    <div class="kv"><div class="k">段间空行</div><div class="v">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+        <input type="checkbox" id="optBlank" checked>
+        <span style="font-size:14px">段落之间保留一个空行</span></label>
+    </div></div>
+    <button class="btn ghost sm" id="btnRe" style="margin-top:12px">重新生成（应用上面的选项）</button>
+  </div>
+
+  <div class="card" id="resultCard" style="display:none">
+    <h2>✏️ 提取结果 <span style="font-size:12.5px;color:var(--muted);font-weight:500">可以直接在这里改，改完再导出</span></h2>
+    <div class="row" style="margin-bottom:12px">
+      <button class="btn teal" id="btnDocx">⬇ 导出 Word（.doc）</button>
+      <button class="btn ghost" id="btnHtml">⬇ 导出网页（.html）</button>
+      <button class="btn grey" id="btnTxt">⬇ 导出纯文本（.txt）</button>
+      <button class="btn grey" id="btnCopy">📋 复制全文</button>
+    </div>
+    <div id="prev" contenteditable="true" spellcheck="false"></div>
+    <div class="note"><b>导出后怎么用：</b>点「导出 Word」会下载一个 <code>.doc</code> 文件，用 WPS 或 Word 打开就能编辑。
+      如果打开时提示格式问题，点「是」继续即可。</div>
+  </div>
+
+  <div class="card">
+    <h2>⚠️ 什么情况效果不好</h2>
+    <ul>
+      <li><b>扫描件 / 拍照的 PDF</b>：整页是图片不是文字，任何工具都提取不出文字（那种要用带 OCR 的软件）。</li>
+      <li><b>复杂数学公式</b>：公式在 PDF 里是特殊符号，提取后可能变形（分数变一行、根号丢失）。建议提取后在 Word 里重新打公式。</li>
+      <li><b>表格</b>：会按行列文字提取，但合并单元格和边框会丢失，需要自己重排。</li>
+      <li><b>加密 PDF</b>：需要密码的无法打开，请先用原密码解密。</li>
+      <li><b>分栏排版</b>：双栏试卷可能左右栏文字串行，提取后需要手工调整顺序。</li>
+    </ul>
+    <div class="warn"><b>关于隐私：</b>本工具在浏览器本地解析，PDF 内容和提取结果<b>不会离开你的设备</b>，可放心处理含学生信息的材料。
+      但导出的 Word 文件本身也要妥善保管——如果里面有身份证号、家庭住址等信息。</div>
+  </div>
+
+  <div class="card">
+    <h2>💡 免费方案对比</h2>
+    <div class="kv"><div class="k">本工具</div><div class="v">不花钱 · 不上传 · 排版还原一般 · 适合只要文字</div></div>
+    <div class="kv"><div class="k">Word 直接打开</div><div class="v">不花钱 · Word 能直接打开 PDF 转成可编辑文档 · 还原度不错，<b>最省事</b></div></div>
+    <div class="kv"><div class="k">WPS Office</div><div class="v">基本免费（有次数限制）· 排版还原最好 · 带 OCR，扫描件也能转</div></div>
+    <div class="kv"><div class="k">在线转换网站</div><div class="v">不花钱 · 但要上传文件到别人服务器 · <b>别传学生资料</b></div></div>
+    <div class="note">如果只是想把卷子变成可编辑的 Word，优先试 <b>用 Word / WPS 直接打开 PDF</b>——最省事、还原最好、也不花钱。
+      本工具的优势是<b>完全本地、不上传</b>，以及能一次批量处理多个 PDF。</div>
+  </div>
+
+</main>
+
+<script>
+"use strict";
+var $=function(s,r){return (r||document).querySelector(s)};
+var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function toast(msg,type){
+  var cls=type==='err'?'err':(type==='ok'?'ok':'note');
+  $('#msg').innerHTML='<div class="'+cls+'">'+msg+'</div>';
+}
+
+/* ============ pdf.js 按需加载（不内联 worker，手机省流量） ============ */
+var PDFJS_READY=null;
+function loadPdfJs(){
+  if(PDFJS_READY)return PDFJS_READY;
+  PDFJS_READY=new Promise(function(res,rej){
+    if(window.pdfjsLib){ res(window.pdfjsLib); return }
+    var s=document.createElement('script');
+    s.src='pdf.min.js';
+    s.onload=function(){
+      try{
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc='pdf.worker.min.js';
+        res(window.pdfjsLib);
+      }catch(e){ rej(e) }
+    };
+    s.onerror=function(){ rej(new Error('解析库加载失败，请确认 pdf.min.js 与这个文件放在同一目录')) };
+    document.head.appendChild(s);
+  });
+  return PDFJS_READY;
+}
+
+/* 解析 PDF：真 Worker 优先（快）；起不来就 6 秒后自动降级到主线程（慢但能出结果） */
+function parsePdf(bytes){
+  return loadPdfJs().then(function(pdfjs){
+    return new Promise(function(resolve,reject){
+      var settled=false,timer=null;
+      function ok(p){ if(settled)return;settled=true;if(timer)clearTimeout(timer);resolve(p) }
+      function fail(e){ if(settled)return;settled=true;if(timer)clearTimeout(timer);reject(e) }
+      function run(useWorker){
+        var doc;
+        try{
+          doc=useWorker
+            ? pdfjs.getDocument({data:bytes,isEvalSupported:false})
+            : pdfjs.getDocument({data:bytes,disableWorker:true,isEvalSupported:false,worker:null});
+        }catch(e){
+          if(useWorker){ window.__PDF_FALLBACK=true; return run(false) }
+          return fail(e);
+        }
+        if(timer)clearTimeout(timer);
+        timer=setTimeout(function(){
+          if(settled)return;
+          if(useWorker){ window.__PDF_FALLBACK=true; run(false) }
+          else fail(new Error('解析超时（文件可能过大、已损坏或需要密码）'));
+        },useWorker?6000:180000);
+        doc.promise.then(ok,function(e){
+          if(settled)return;
+          if(useWorker){ window.__PDF_FALLBACK=true; run(false) }
+          else fail(e);
+        });
+      }
+      run(true);
+    });
+  });
+}
+
+/* ===================== 状态 ===================== */
+var FILES=[];
+var PAGES=[];
+var PARAS=[];
+
+/* ===================== 选文件 ===================== */
+var drop=$('#drop'), fi=$('#fi');
+drop.onclick=function(){fi.click()};
+drop.addEventListener('dragover',function(e){e.preventDefault();drop.classList.add('over')});
+drop.addEventListener('dragleave',function(){drop.classList.remove('over')});
+drop.addEventListener('drop',function(e){e.preventDefault();drop.classList.remove('over');addFiles(e.dataTransfer.files)});
+fi.addEventListener('change',function(){addFiles(this.files);this.value=''});
+
+function addFiles(list){
+  var added=0,skipped=[];
+  Array.prototype.forEach.call(list||[],function(f){
+    if(!/\.pdf$/i.test(f.name)&&f.type!=='application/pdf'){skipped.push(f.name);return}
+    if(FILES.some(function(x){return x.name===f.name&&x.size===f.size}))return;
+    FILES.push(f);added++;
+  });
+  if(skipped.length)toast('已跳过非 PDF 文件：'+esc(skipped.join('、')),'err');
+  paintFiles();
+  $('#btnConvert').disabled=!FILES.length;
+  if(added)toast('已选 '+FILES.length+' 个文件，点下面的按钮开始提取','ok');
+}
+function paintFiles(){
+  $('#fileList').innerHTML=FILES.map(function(f,i){
+    return '<div class="fitem"><span>📄</span><span class="n">'+esc(f.name)+'</span>'
+      +'<span class="st" data-i="'+i+'">'+fmtSize(f.size)+'</span>'
+      +'<button class="btn grey sm" data-del="'+i+'" style="padding:5px 10px;font-size:12.5px">移除</button></div>';
+  }).join('');
+  $$('#fileList [data-del]').forEach(function(b){
+    b.onclick=function(){ FILES.splice(+b.getAttribute('data-del'),1); paintFiles(); $('#btnConvert').disabled=!FILES.length };
+  });
+}
+function fmtSize(n){
+  if(n<1024)return n+' B';
+  if(n<1024*1024)return (n/1024).toFixed(0)+' KB';
+  return (n/1024/1024).toFixed(1)+' MB';
+}
+function setFileStatus(i,cls,txt){
+  var el=$('#fileList .st[data-i="'+i+'"]');
+  if(el){el.className='st '+cls;el.textContent=txt}
+}
+
+/* ===================== 提取 ===================== */
+$('#btnConvert').onclick=function(){
+  if(!FILES.length)return;
+  var btn=this;btn.disabled=true;btn.textContent='正在提取…';
+  $('#pbar').style.display='block';
+  $('#resultCard').style.display='none';
+  $('#optCard').style.display='none';
+  window.__PDF_FALLBACK=false;
+  PAGES=[];
+  var idx=0;
+  (function nextFile(){
+    if(idx>=FILES.length)return done();
+    var f=FILES[idx];
+    setFileStatus(idx,'working','读取中…');
+    var fr=new FileReader();
+    fr.onload=function(){
+      parsePdf(new Uint8Array(fr.result)).then(function(pdf){
+        var pn=1;
+        (function nextPage(){
+          if(pn>pdf.numPages){
+            setFileStatus(idx,'done','✓ '+pdf.numPages+' 页');
+            idx++;return nextFile();
+          }
+          pdf.getPage(pn).then(function(page){
+            page.getTextContent().then(function(tc){
+              PAGES.push({page:PAGES.length+1,src:f.name,items:tc.items.map(function(it){
+                return {str:it.str,x:it.transform[4],y:it.transform[5],w:it.width,h:Math.abs(it.transform[3])||it.height||10};
+              })});
+              $('#pbarIn').style.width=Math.round(((idx+pn/pdf.numPages)/FILES.length)*100)+'%';
+              pn++;setTimeout(nextPage,0);
+            },function(){pn++;setTimeout(nextPage,0)});
+          },function(){pn++;setTimeout(nextPage,0)});
+        })();
+      },function(err){
+        setFileStatus(idx,'fail',/password/i.test(String(err&&err.message))?'需要密码':'打不开');
+        idx++;nextFile();
+      });
+    };
+    fr.onerror=function(){setFileStatus(idx,'fail','读取失败');idx++;nextFile()};
+    fr.readAsArrayBuffer(f);
+  })();
+
+  function done(){
+    btn.disabled=false;btn.textContent='重新提取';
+    $('#pbar').style.display='none';
+    var total=PAGES.reduce(function(a,p){return a+p.items.filter(function(x){return x.str&&x.str.trim()}).length},0);
+    if(!total){
+      toast('<b>没有提取到任何文字。</b><br>这份 PDF 很可能是<b>扫描件或图片</b>（整页是图片，没有文字层）。'
+        +'这种情况需要 OCR 文字识别，本工具不做。<br>建议：用 WPS 的「PDF 转 Word」（带 OCR），'
+        +'或用手机扫描类 App 的「识别文字」功能。','err');
+      return;
+    }
+    build();
+  }
+};
+
+/* ===================== 重排段落 ===================== */
+function build(){
+  var merge=$('#optMerge').checked;
+  var dropHeader=$('#optHeader').checked;
+  var blank=$('#optBlank').checked;
+
+  var allLines=[];
+  PAGES.forEach(function(pg){
+    var items=pg.items.filter(function(it){return it.str&&it.str.trim()!==''});
+    if(!items.length)return;
+    items.sort(function(a,b){return b.y-a.y||a.x-b.x});
+    var lines=[],cur=null;
+    items.forEach(function(it){
+      var tol=Math.max(2,(it.h||10)*0.5);
+      if(cur&&Math.abs(cur.y-it.y)<=tol)cur.items.push(it);
+      else{cur={y:it.y,items:[it],page:pg.page};lines.push(cur)}
+    });
+    lines.forEach(function(L){
+      L.items.sort(function(a,b){return a.x-b.x});
+      var s='';
+      for(var i=0;i<L.items.length;i++){
+        if(i>0){
+          var pv=L.items[i-1];
+          var gap=L.items[i].x-(pv.x+(pv.w||0));
+          var sz=L.items[i].h||10;
+          if(gap>sz*0.35)s+=' ';
+        }
+        s+=L.items[i].str;
+      }
+      L.text=s.replace(/\s+/g,' ').trim();
+      L.size=Math.max.apply(null,L.items.map(function(x){return x.h||10}));
+      if(L.text)allLines.push(L);
+    });
+  });
+
+  /* 去页眉页脚 / 页码 / 装饰线 */
+  if(dropHeader&&PAGES.length>1){
+    var cnt={};
+    allLines.forEach(function(L){
+      var k=L.text.replace(/\d+/g,'#');
+      if(!k)return;
+      cnt[k]=cnt[k]||{n:0,pages:{}};
+      if(!cnt[k].pages[L.page]){cnt[k].pages[L.page]=1;cnt[k].n++}
+    });
+    allLines=allLines.filter(function(L){
+      var k=L.text.replace(/\d+/g,'#'),c=cnt[k];
+      if(c&&c.n/Math.max(1,PAGES.length)>0.5&&L.text.length<=40)return false;
+      if(/^[\s\-—–_·.]+$/.test(L.text))return false;
+      if(/^\d{1,4}$/.test(L.text))return false;
+      return true;
+    });
+  }
+
+  /* 分段：行距明显大于正文字高 → 新段落 */
+  var paras=[],curP=null;
+  for(var i=0;i<allLines.length;i++){
+    var L=allLines[i],prev=allLines[i-1];
+    var newPara=true;
+    if(prev&&merge){
+      var gap=Math.abs(prev.y-L.y);
+      var ref=prev.size||10;
+      if(L.page===prev.page&&gap<=ref*1.75)newPara=false;
+    }
+    if(newPara||!curP){curP={text:L.text,size:L.size};paras.push(curP)}
+    else{curP.text+=L.text;curP.size=Math.max(curP.size,L.size)}
+  }
+  /* 中文之间不该有空格（PDF 拆块会插进去） */
+  paras.forEach(function(p){
+    p.text=p.text
+      .replace(/([\u4e00-\u9fa5]) +([\u4e00-\u9fa5])/g,'$1$2')
+      .replace(/([\u4e00-\u9fa5]) +([，。、；：？！）】》」』])/g,'$1$2')
+      .replace(/([（【《「『]) +([\u4e00-\u9fa5])/g,'$1$2')
+      .replace(/ {2,}/g,' ')
+      .trim();
+  });
+  PARAS=paras.filter(function(p){return p.text});
+
+  var chars=PARAS.reduce(function(a,p){return a+p.text.length},0);
+  $('#sPages').textContent=PAGES.length;
+  $('#sChars').innerHTML=chars>=10000?((chars/10000).toFixed(1)+'<small> 万</small>'):String(chars);
+  $('#sParas').textContent=PARAS.length;
+  $('#statBox').style.display='grid';
+  $('#prev').textContent=PARAS.map(function(p){return p.text}).join(blank?'\n\n':'\n');
+  $('#resultCard').style.display='block';
+  $('#optCard').style.display='block';
+  toast('✅ 提取完成：'+PAGES.length+' 页 · '+PARAS.length+' 段 · '+chars+' 字'
+    +(window.__PDF_FALLBACK?'（本次使用兼容模式解析，速度较慢）':''),'ok');
+}
+$('#btnRe').onclick=function(){ if(!PAGES.length){toast('还没有提取内容','err');return} build() };
+['optMerge','optHeader','optBlank'].forEach(function(id){
+  $('#'+id).addEventListener('change',function(){ if(PAGES.length)build() });
+});
+
+/* ===================== 导出 ===================== */
+function getText(){
+  var t=$('#prev').innerText||$('#prev').textContent||'';
+  return t.replace(/\u00a0/g,' ').replace(/[ \t]+\n/g,'\n').replace(/\n{3,}/g,'\n\n').trim();
+}
+function baseName(){
+  if(!FILES.length)return 'PDF转Word';
+  return FILES[0].name.replace(/\.pdf$/i,'')+(FILES.length>1?('_等'+FILES.length+'个文件'):'');
+}
+function download(name,content,mime){
+  var blob=new Blob([content],{type:mime});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=name;
+  document.body.appendChild(a);a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},1500);
+}
+function parasOf(text){
+  return text.split(/\n{2,}/).map(function(s){return s.replace(/\n/g,' ').trim()}).filter(Boolean);
+}
+$('#btnDocx').onclick=function(){
+  var paras=parasOf(getText());
+  if(!paras.length){toast('没有内容可导出','err');return}
+  var body=paras.map(function(p){
+    return '<p style="margin:0 0 8pt 0;line-height:1.6;font-size:12pt">'+esc(p)+'</p>';
+  }).join('\n');
+  var html='<html xmlns:o="urn:schemas-microsoft-com:office:office" '
+    +'xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">'
+    +'<head><meta charset="utf-8"><title>'+esc(baseName())+'</title>'
+    +'<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom>'
+    +'<w:DoNotOptimizeForBrowser/></w:WordDocument></xml><![endif]-->'
+    +'<style>@page{size:A4;margin:2.54cm 3.17cm}body{font-family:"宋体",SimSun,serif;font-size:12pt;line-height:1.6}'
+    +'p{margin:0 0 8pt 0}</style></head><body>'+body+'</body></html>';
+  download(baseName()+'.doc',html,'application/msword');
+  toast('已导出 Word 文件，用 WPS / Word 打开即可编辑。','ok');
+};
+$('#btnHtml').onclick=function(){
+  var paras=parasOf(getText());
+  var html='<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><title>'+esc(baseName())+'</title>'
+    +'<style>body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;max-width:820px;margin:0 auto;'
+    +'padding:28px 20px;line-height:1.85;font-size:16px;color:#182135}p{margin:0 0 14px}</style></head><body>'
+    +paras.map(function(p){return '<p>'+esc(p)+'</p>'}).join('\n')+'</body></html>';
+  download(baseName()+'.html',html,'text/html;charset=utf-8');
+  toast('已导出网页文件','ok');
+};
+$('#btnTxt').onclick=function(){
+  download(baseName()+'.txt','\ufeff'+getText(),'text/plain;charset=utf-8');
+  toast('已导出纯文本','ok');
+};
+$('#btnCopy').onclick=function(){
+  var t=getText();
+  function fallback(){
+    var ta=document.createElement('textarea');
+    ta.value=t;ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy');toast('已复制全文','ok')}catch(e){toast('复制失败，请手动全选复制','err')}
+    ta.remove();
+  }
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(t).then(function(){toast('已复制全文，可直接粘贴到 Word','ok')},fallback);
+  } else fallback();
+};
+
+/* 启动自检 */
+(function(){
+  if(typeof pdfjsLib==='undefined'){
+    toast('<b>PDF 解析库没加载成功。</b><br>请确认 <code>pdf.min.js</code> 文件和这个 HTML 放在同一个文件夹里。','err');
+  }
+})();
+
+</script>
+</body>
+</html>
