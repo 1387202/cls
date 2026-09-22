@@ -129,6 +129,18 @@ input.mini:focus{border-color:var(--pri-l)}
       <b>识别规则：</b>以「<code>1.</code> <code>2、</code> <code>（3）</code> <code>例1</code> <code>习题2</code>」开头的行会被当作新题目的开始。
       选项行（<code>A.</code> <code>B.</code>）会并入上一题。整份卷子直接粘进来就行，不用先整理。
     </div>
+    <div class="err">
+      <b>⚠️ 从 Word / WPS 复制出来的卷子，公式常常会丢！</b><br>
+      如果你看到题目里有 <code>⟨公式⟩</code> 这样的标记，说明原文的公式是<b>图片或公式对象</b>，复制时变成了空白，
+      而<b>数学题的解题条件几乎都在公式里</b>——这会让判断很不准。<br>
+      <b>两个解决办法：</b>
+      <ul>
+        <li><b>最好用</b>：把题目的文字部分<b>补一下</b>（比如把「求⟨公式⟩的值」改成「求 x²+2x+1 的值」），或者在旁边手写补充关键条件</li>
+        <li><b>更省事</b>：题目直接<b>手打或语音输入</b>数学式子——反正数学式子就那么几个符号（x² √ ≠ ≤），比想象中快</li>
+      </ul>
+      判不准的题会标出来，你可以点「换个类别」手工调整。
+    </div>
+
     <div class="amber">
       <b>关于准确率，先说清楚：</b>这是<b>关键词规则匹配</b>，不是人工智能。它认识的是题目里出现的字词——比如看到「二次函数」「抛物线」「顶点」就归到二次函数。
       所以：
@@ -181,197 +193,232 @@ input.mini:focus{border-color:var(--pri-l)}
 
 <script>
 /* ===================== 引擎（与本地测试版一致） ===================== */
-/* 知识点归类引擎：权重打分 + 题型判别
-   设计原则：
-   1) 知识点按教材章节组织，教师熟悉、可自行增删
-   2) 匹配用「权重」而不是简单包含：题名关键词权重高，通用词权重低
-   3) 每道题都知道自己为什么被归到这一类（记录命中词），便于教师核对和纠正
-   4) 低置信度的题单独列出来，不硬塞进某个类别
-*/
-
-/* ============ 知识点库 ============ */
-/* kw: [关键词, 权重]  权重 3=几乎确定  2=强指示  1=弱指示 */
+/* 干净重写知识点库：32 个知识点，关键词按「专属度」给权重
+   权重 3 = 几乎确定属于该知识点（章节题眼/定理名）
+   权重 2 = 强指示
+   权重 1 = 弱指示（通用词，单独出现不足以判定） */
 const TOPICS = [
   {id:'rational', grade:'七上', name:'有理数', kw:[
-    ['有理数',3],['相反数',3],['绝对值',2],['数轴',3],['倒数',2],['科学记数法',3],
-    ['正数',1],['负数',1],['有理数的',3],['乘方',2],['近似数',2],['有效数字',2],
-    ['|',1],['绝对值',3],['数轴上的点',2],['比大小',2]
+    ['有理数',3],['相反数',3],['绝对值',3],['数轴',3],['倒数',3],['科学记数法',3],
+    ['乘方',2],['近似数',3],['有效数字',3],['正数',1],['负数',1],['数轴上的点',2],['比大小',2]
   ]},
   {id:'algebra-add', grade:'七上', name:'整式的加减', kw:[
     ['整式',3],['单项式',3],['多项式',3],['同类项',3],['合并同类项',3],['去括号',3],
-    ['系数',2],['次数',1],['升幂',2],['降幂',2],['添括号',3]
+    ['添括号',3],['升幂',2],['降幂',2],['系数',1],['多项式的次数',3]
   ]},
   {id:'eq-linear1', grade:'七上', name:'一元一次方程', kw:[
-    ['一元一次方程',3],['解方程',2],['方程的解',2],['移项',3],['列方程',3],
-    ['去分母',2],['打折',1],['利润',2],['行程问题',2],['工程问题',2],['配套',1],
-    ['求这个百分率',3],['进价',2],['售价',2],['求甲',2],['购进',2],['平均增长率',2]
+    ['一元一次方程',3],['解方程',2],['方程的解',2],['移项',3],['列方程',3],['去分母',2],
+    ['进价',2],['售价',2],['利润',2],['行程问题',3],['工程问题',3],['配套问题',3],
+    ['求这个百分率',3],['平均增长率',2],['购进',2],['打几折',2]
   ]},
   {id:'geom-basic', grade:'七上', name:'几何图形初步', kw:[
-    ['直线',1],['射线',2],['线段',2],['中点',3],['角平分线',3],['余角',3],['补角',3],
-    ['对顶角',3],['同位角',2],['展开图',3],['三视图',3],['度分秒',2],['正方体',1],['棱柱',2]
+    ['中点',3],['角平分线',2],['余角',3],['补角',3],['对顶角',3],['展开图',3],
+    ['三视图',3],['度分秒',3],['棱柱',2],['线段的中点',3],['两点之间',2]
   ]},
   {id:'parallel', grade:'七下', name:'相交线与平行线', kw:[
-    ['平行线',3],['平行',2],['内错角',3],['同旁内角',3],['垂线',3],['垂足',3],
-    ['点到直线的距离',3],['平移',2],['命题',2],['真命题',3],['定理',1],['证明',1]
+    ['平行线',3],['内错角',3],['同旁内角',3],['垂线',3],['垂足',3],['垂线段最短',3],
+    ['点到直线的距离',3],['平移',2],['命题',2],['真命题',3],['同位角',3],['邻补角',3]
   ]},
   {id:'real', grade:'七下', name:'实数', kw:[
-    ['实数',3],['平方根',3],['算术平方根',3],['立方根',3],['无理数',3],['开方',2],
-    ['根号',2],['√',2],['估算',1],['实数与数轴',3]
+    ['平方根',3],['算术平方根',3],['立方根',3],['无理数',3],['开方',2],['实数',2]
   ]},
   {id:'coord', grade:'七下', name:'平面直角坐标系', kw:[
-    ['平面直角坐标系',3],['坐标系',3],['象限',3],['横坐标',3],['纵坐标',3],
-    ['有序数对',3],['坐标',2],['用坐标表示平移',3]
+    ['平面直角坐标系',3],['坐标系',2],['象限',3],['横坐标',3],['纵坐标',3],
+    ['有序数对',3],['关于x轴对称',3],['关于y轴对称',3],['关于原点对称',3],['用坐标表示',2]
   ]},
   {id:'eq-linear2', grade:'七下', name:'二元一次方程组', kw:[
     ['二元一次方程组',3],['二元一次方程',3],['代入消元',3],['加减消元',3],['消元',3],
-    ['鸡兔同笼',3],['两个未知数',2],['方程组',3],['解方程组',3],['x＋y',2],['设两个',2]
+    ['鸡兔同笼',3],['解方程组',3],['方程组',2]
   ]},
   {id:'ineq', grade:'七下', name:'不等式与不等式组', kw:[
-    ['不等式组',3],['不等式',3],['解集',3],['数轴上表示',2],['大小关系',1],['≥',1],['≤',1],['不少于',2],['不超过',2],['至少',1],['至多',1]
+    ['不等式组',3],['不等式',2],['解集',3],['不等式的基本性质',3],['在数轴上表示',2],
+    ['不少于',2],['不超过',2],['至多',2],['至少',2],['取值范围',2]
   ]},
   {id:'stat-basic', grade:'七下', name:'数据的收集整理与描述', kw:[
-    ['全面调查',3],['抽样调查',3],['样本',2],['总体',1],['个体',1],['频数',3],
-    ['频率',3],['直方图',3],['扇形统计图',3],['条形统计图',3],['折线统计图',3],['统计图',2]
+    ['全面调查',3],['抽样调查',3],['样本容量',3],['频数',3],['频率',3],
+    ['直方图',3],['扇形统计图',3],['条形统计图',3],['折线统计图',3],['总体',1],['个体',1]
   ]},
   {id:'triangle', grade:'八上', name:'三角形', kw:[
-    ['三角形',2],['内角和',3],['外角',3],['三边关系',3],['中线',3],['高线',2],['重心',3],
-    ['等腰三角形',3],['等边三角形',3],['多边形',3],['正多边形',3],['n边形',3],['外交和',2]
-  ]},
+    ['重心',3],['中线',3],['高线',2],['内角和',3],['外角',3],['外角性质',3],
+    ['三边关系',3],['等腰三角形',3],['等边三角形',3],['多边形',3],['正多边形',3],
+    ['n边形',3],['三角形的',2],['角平分线交',2]
+  ,
+    ['等边三角形',2],['为等边三角形',3]]},
   {id:'congruent', grade:'八上', name:'全等三角形', kw:[
     ['全等三角形',3],['全等',3],['SSS',3],['SAS',3],['ASA',3],['AAS',3],['HL',3],
-    ['对应边',3],['对应角',3],['角平分线的性质',3],['垂直平分线',3],
-    ['求证',2],['证明',2],['∠B＝∠C',3],['等腰',2],['等腰三角形',2]
-  ]},
+    ['对应边',3],['对应角',3],['判定定理',3],['仍不能证明',3],['不能证明',3],
+    ['求证',2],['证明',1],['等腰',2],['风筝',2],['骨架图',2],['证得',2],['全等的',3]
+  ,
+    ['等边三角形',2],['试猜想',3],['并说明理由',3],['数量关系',3],['求证',2]]},
   {id:'symmetry', grade:'八上', name:'轴对称', kw:[
-    ['轴对称',3],['对称轴',3],['垂直平分线',3],['等腰三角形的性质',3],['等边三角形',2],['最短路径',2],['将军饮马',3],['镜面',2]
+    ['轴对称',3],['轴对称图形',3],['对称轴',3],['垂直平分线',3],['线段垂直平分线',3],
+    ['等腰三角形的性质',3],['等边三角形的性质',3],['对称点',2],['镜面',2]
   ]},
   {id:'factor', grade:'八上', name:'整式的乘法与因式分解', kw:[
-    ['因式分解',3],['提公因式',3],['公式法',3],['平方差',3],['完全平方',3],
-    ['幂的运算',3],['同底数幂',3],['积的乘方',3],['单项式乘',3],['多项式乘',3],['十字相乘',3],['分组分解',3],
-    ['运算正确的是',3],['下列运算',3],['幂',2],['a²·a',3],['(a²)³',3]
+    ['因式分解',3],['分解因式',3],['提公因式',3],['公式法',3],['平方差',3],
+    ['完全平方式',3],['完全平方公式',3],['配成完全平方',3],['幂的运算',3],
+    ['同底数幂',3],['积的乘方',3],['单项式乘',3],['多项式乘',3],['十字相乘',3],
+    ['分组分解',3],['运算正确的是',2],['下列运算',2],['因式码',3],['化简',1]
   ]},
   {id:'fraction', grade:'八上', name:'分式', kw:[
-    ['分式',3],['最简公分母',3],['分式方程',3],['增根',3],['约分',2],['通分',2],
-    ['分式的',3],['分母',1],['值为零',2]
-  ]},
+    ['分式',3],['最简分式',3],['最简公分母',3],['分式方程',3],['增根',3],
+    ['分式的值为零',3],['解分式方程',3],['约分',2],['通分',2],['化简求值',2],['值为零',2]
+  ,
+    ['化简求值',3],['代数式的值',2],['化简',1],['求值',1]]},
   {id:'radical', grade:'八下', name:'二次根式', kw:[
-    ['二次根式',3],['最简二次根式',3],['被开方数',3],['分母有理化',3],['同类二次根式',3],['根号',2],['√',2],['有意义',2],['取值范围',2]
-  ]},
+    ['二次根式',3],['最简二次根式',3],['被开方数',3],['分母有理化',3],
+    ['同类二次根式',3],['有意义',2],['取值范围',2],['二次根式的',3]
+  ,
+    ['代数式的值',2],['求下列代数式',2],['已知',0]]},
   {id:'pythagorean', grade:'八下', name:'勾股定理', kw:[
-    ['勾股定理',3],['勾股',3],['斜边',3],['直角边',3],['勾股数',3],['赵爽',2],['直角三角形',2]
+    ['勾股定理',3],['勾股',3],['斜边',3],['直角边',3],['勾股数',3],['逆定理',3],['直角三角形',2]
   ]},
   {id:'parallelogram', grade:'八下', name:'平行四边形', kw:[
-    ['平行四边形',3],['矩形',3],['菱形',3],['正方形',2],['对角线',2],['中位线',3],
-    ['梯形',3],['邻边',2],['对角线互相',3]
+    ['平行四边形',3],['矩形',3],['菱形',3],['正方形',3],['正方形纸片',3],['对角线',2],
+    ['中位线',3],['对角线互相',3],['一组邻边',2],['梯形',3]
   ]},
   {id:'func-linear', grade:'八下', name:'一次函数', kw:[
-    ['一次函数',3],['正比例函数',3],['y=kx',3],['y = kx',3],['斜率',2],['截距',2],
-    ['函数图象',2],['自变量',2],['待定系数法',3],['函数解析式',2],['k>0',2],['k<0',2],['函数值',2],['与x轴的交点',3],['与y轴的交点',3],['求它与',2]
+    ['一次函数',3],['正比例函数',3],['待定系数法',3],['与x轴的交点',3],['与y轴的交点',3],
+    ['函数图象',2],['自变量',2],['函数解析式',2],['斜率',2],['截距',2],['函数值',2]
   ]},
   {id:'stat-analysis', grade:'八下', name:'数据的分析', kw:[
-    ['平均数',3],['加权平均数',3],['中位数',3],['众数',3],['方差',3],['标准差',2],
-    ['极差',3],['波动',2],['稳定性',2],['算术平均数',3]
+    ['平均数',3],['加权平均数',3],['中位数',3],['众数',3],['方差',3],['标准差',2],['极差',3]
   ]},
   {id:'eq-quadratic', grade:'九上', name:'一元二次方程', kw:[
-    ['一元二次方程',3],['配方法',3],['公式法',2],['因式分解法',3],['判别式',3],
-    ['Δ',2],['两根',2],['韦达定理',3],['根与系数',3],['x²',3],['增长率',3],['降价率',3],
-    ['不相等的实数根',3],['实数根',3],['平均降价',3],['百分率相同',3],['面积增加',2]
+    ['一元二次方程',3],['配方法',3],['因式分解法',3],['判别式',3],['两个不相等的实数根',3],
+    ['实数根',3],['韦达定理',3],['根与系数',3],['两根之和',3],['两根之积',3],
+    ['平均降价',3],['百分率相同',3],['非零实数',2],['知识迁移',2],['拓展提升',2],['解为',1]
   ]},
   {id:'func-quadratic', grade:'九上', name:'二次函数', kw:[
-    ['二次函数',3],['抛物线',3],['顶点',3],['对称轴',3],['开口方向',3],['y=ax²',3],
-    ['y = ax',3],['最值',2],['顶点式',3],['交点式',3],['二次函数的',3],['与x轴交',3],['最大值',1],['最小值',1]
+    ['二次函数',3],['抛物线',3],['顶点',3],['对称轴',2],['开口方向',3],['顶点式',3],
+    ['交点式',3],['取最小值',3],['取最大值',3],['最值',3],['面积最大',3],['最小值是',2],['最大值是',2]
   ]},
   {id:'rotate', grade:'九上', name:'旋转', kw:[
-    ['旋转',3],['中心对称',3],['旋转角',3],['对应点到旋转中心',3],['中心对称图形',3],['旋转180',3]
+    ['旋转',3],['中心对称',3],['旋转角',3],['中心对称图形',3],['旋转180',3],['绕点',2],['顺时针',2],['逆时针',2]
   ]},
   {id:'circle', grade:'九上', name:'圆', kw:[
-    ['圆',1],['半径',2],['直径',3],['弦',3],['圆心角',3],['圆周角',3],['弧',2],['⊙',3],
-    ['切线',3],['切点',3],['割线',3],['垂径定理',3],['内切圆',3],['外接圆',3],
-    ['扇形',3],['弧长',3],['圆锥',3],['侧面积',2],['正多边形与圆',3],['同弧',3]
+    ['直径',3],['弦',3],['⊙',3],['圆心角',3],['圆周角',3],['切线',3],['切点',3],
+    ['割线',3],['垂径定理',3],['内切圆',3],['外接圆',3],['扇形',3],['弧长',3],
+    ['圆锥',3],['侧面积',2],['同弧',3],['圆内接',3]
   ]},
   {id:'prob', grade:'九上', name:'概率初步', kw:[
     ['概率',3],['随机事件',3],['必然事件',3],['不可能事件',3],['树状图',3],['列表法',3],
     ['等可能',3],['摸球',2],['掷骰子',2],['抽签',2],['转盘',2]
   ]},
   {id:'func-inverse', grade:'九下', name:'反比例函数', kw:[
-    ['反比例函数',3],['y=k/x',3],['y = k/x',3],['双曲线',3],['反比例',3],['k的几何意义',3],
-    ['乘积一定',3],['成反比例',3],['反比',3],['函数关系式',2],['所用时间',1],['写出',1]
+    ['反比例函数',3],['反比例',3],['双曲线',3],['k的几何意义',3],['成反比例',3],['乘积一定',2]
   ]},
   {id:'similar', grade:'九下', name:'相似', kw:[
-    ['相似三角形',3],['相似',3],['相似比',3],['位似',3],['平行线分线段成比例',3],
-    ['黄金分割',3],['成比例线段',3],['对应边成比例',3]
+    ['相似三角形',3],['相似比',3],['位似',3],['平行线分线段成比例',3],['黄金分割',3],
+    ['成比例线段',3],['对应边成比例',3],['相似',2]
   ]},
   {id:'trig', grade:'九下', name:'锐角三角函数', kw:[
     ['锐角三角函数',3],['正弦',3],['余弦',3],['正切',3],['sin',3],['cos',3],['tan',3],
     ['仰角',3],['俯角',3],['坡度',3],['坡角',3],['解直角三角形',3],['三角函数',3]
   ]},
   {id:'projection', grade:'九下', name:'投影与视图', kw:[
-    ['投影',3],['三视图',3],['正投影',3],['主视图',3],['左视图',3],['俯视图',3],['平行投影',3],['中心投影',3]
+    ['正投影',3],['平行投影',3],['中心投影',3],['三视图',3],['主视图',3],['左视图',3],['俯视图',3]
+  ]},
+  {id:'construction', grade:'综合', name:'尺规作图', kw:[
+    ['尺规作图',3],['求作',3],['保留作图痕迹',3],['不写作法',3],['作图痕迹',3],
+    ['作垂线',3],['作角平分线',3],['作垂直平分线',3],['画出',2],['作图题',3]
+  ]},
+  {id:'foldshortest', grade:'综合', name:'折叠与最短路径', kw:[
+    ['折叠',3],['翻折',3],['折痕',3],['两点之间线段最短',3],['将军饮马',3],
+    ['最短距离',3],['周长最小',3],['距离之和最小',3],['最短路径',3],['最小值是',1]
   ]},
   {id:'comprehensive', grade:'综合', name:'综合应用（跨知识点）', kw:[
-    ['动点',3],['探究',2],['阅读材料',3],['新定义',3],['综合运用',3],['类比',2],['拓展',2],['实际应用',2],['方案设计',2],['最优化',2]
+    ['动点',3],['阅读材料',2],['新定义',3],['综合运用',3],['探究',2],['类比',2],
+    ['拓展',2],['实际应用',2],['方案设计',2],['是否发生变化',3],['试猜想',3]
   ]}
 ];
 
 /* 题型识别 */
 const TYPE_PATTERNS = [
-  {t:'选择', re:/(单项选择|多项选择|选择题|选出|下列.*的是|正确的是|错误的是)/},
-  {t:'填空', re:/(填空题|填一填|横线上|________|____)/},
-  {t:'解答', re:/(解答题|计算题|解方程|解不等式|证明|求证|化简|求.*的值|解答)/},
-  {t:'作图', re:/(作图|画图|尺规|保留作图痕迹|画出)/},
-  {t:'应用', re:/(实际问题|应用题|销售|利润|方案|租用|设计)/}
+  {t:'选择', re:/(单项选择|多项选择|选择题|选出|下列.*的是|正确的是|错误的是|不能证明)/},
+  {t:'填空', re:/(填空题|填一填|横线上|_{3,}|＿{3,})/},
+  {t:'作图', re:/(尺规作图|求作|保留作图痕迹|不写作法|画出|作图)/},
+  {t:'解答', re:/(解答题|计算题|解方程|解不等式|解分式方程|证明|求证|化简|求.*的值|解答|求作)/},
+  {t:'应用', re:/(实际问题|应用题|销售|利润|方案|租用|设计|测量)/}
 ];
 
-/* 去掉题目前面的编号，例： "1." "1、" "（1）" "例3" "第5题" */
+/* 知识点归类引擎（逻辑层）。知识点数据在 topics-data.js */
+/* 数据来源：浏览器里由 topics-data.js 提供全局 TOPICS / TYPE_PATTERNS；
+   Node 里 require 同目录的 topics-data.js。整体包在 IIFE 里避免变量重复声明。 */
+var TOPICS_REF=(typeof TOPICS!=='undefined')?TOPICS:(require('./topics-data.js').TOPICS);
+var TYPE_REF=(typeof TYPE_PATTERNS!=='undefined')?TYPE_PATTERNS:(require('./topics-data.js').TYPE_PATTERNS);
+var __ENGINE=(function(){
+var TOPICS=TOPICS_REF, TYPE_PATTERNS=TYPE_REF;
+
+/* ============ 切题 ============
+   规则是用真实复习卷试出来的：
+   1) 顶层题号：行首 "1." "2、" "例3" "习题4" "第5题"
+   2) 小问 (1)(2)(3)、①②③：并入上一题（不要把一道大题碎成几块）
+   3) A. B. C. D. 选项行：一律并入上一题
+   4) 含题眼（如图/求证/求…）但没编号的行：并入上一题
+*/
+function isSubNo(s){
+  return /^\s*(?:[（(]\s*\d+\s*[)）]|[①②③④⑤⑥⑦⑧⑨]|[一二三四五六七八九]、)/.test(s);
+}
+function isOption(s){
+  return /^\s*[ABCD][．.、)）]/.test(s)||/^\s*[ABCD]\s*$/.test(s);
+}
+function isTopNo(s){
+  return /^\s*(?:第\s*\d+\s*题|例\s*\d+|习题\s*\d+|练习\s*\d+|\d{1,3}\s*[．.、)）])/.test(s);
+}
+function looksLikeStem(s){
+  return /(如图|求证|求解|求作|已知|若|则|证明|计算|解方程|解不等式|化简|画出|写出|判断|下列|正确的是|错误的是|的值为|度数|面积|周长|最小值|最大值)/.test(s);
+}
 function stripNo(s){
   return String(s).replace(/^\s*(?:第\s*\d+\s*题|例\s*\d+|习题\s*\d+|练习\s*\d+|\d+\s*[．.、)）]|[（(]\s*\d+\s*[)）])\s*/,'').trim();
 }
 function qNo(s){
-  const m=String(s).match(/^\s*(?:第\s*(\d+)\s*题|例\s*(\d+)|习题\s*(\d+)|练习\s*(\d+)|(\d+)\s*[．.、)）]|[（(]\s*(\d+)\s*[)）])/);
+  var m=String(s).match(/^\s*(?:第\s*(\d+)\s*题|例\s*(\d+)|习题\s*(\d+)|练习\s*(\d+)|(\d+)\s*[．.、)）]|[（(]\s*(\d+)\s*[)）])/);
   if(!m)return '';
   return m[1]||m[2]||m[3]||m[4]||m[5]||m[6]||'';
 }
 
-/* 把一整段文本切成题目 */
 function splitQuestions(text){
-  let t=String(text).replace(/\r\n?/g,'\n');
-  /* 把挤在一行的题号拆开：在 "数字." 或 "数字、" 前插入换行（避免误伤小数和日期） */
-  t=t.replace(/([。；;？?）)\]】])\s*(?=\d{1,3}\s*[．.、]\s*\S)/g,'$1\n');
+  var t=String(text).replace(/\r\n?/g,'\n');
+  /* 把挤在一行的题号拆开 */
+  t=t.replace(/([。；;？?！!）)\]】》」』])\s*(?=\d{1,3}\s*[．.、]\s*\S)/g,'$1\n');
   t=t.replace(/\n\s*(?=\d{1,3}\s*[．.、]\s*\S)/g,'\n');
-  /* 例/习题/练习 开头也换行 */
   t=t.replace(/(?<!^)\s*(?=(?:例|习题|练习)\s*\d+)/g,'\n');
-  const lines=t.split('\n').map(s=>s.trim()).filter(Boolean);
-  const out=[];let cur=null;
+
+  var lines=t.split('\n').map(function(s){return s.trim()}).filter(Boolean);
+  var out=[],cur=null;
+
   lines.forEach(function(L){
-    const isStart=/^(?:第\s*\d+\s*题|例\s*\d+|习题\s*\d+|练习\s*\d+|\d{1,3}\s*[．.、)）]|[（(]\s*\d+\s*[)）])/.test(L);
-    /* 选项行（A. B. C. D.）不算新题开头 */
-    const isOpt=/^[ABCD][．.、)）]/.test(L);
-    if(isStart&&!isOpt){
+    var top=isTopNo(L), sub=isSubNo(L), opt=isOption(L);
+    if(top&&!opt){
       if(cur&&cur.body.trim())out.push(cur);
       cur={no:qNo(L),body:stripNo(L)};
-    }else{
-      if(!cur)cur={no:'',body:''};
-      cur.body+=(cur.body?' ':'')+L;
+      return;
     }
+    if(cur){
+      /* 选项、小问、题眼行 → 并入当前题 */
+      if(opt||sub||looksLikeStem(L))cur.body+=(cur.body?' ':'')+L;
+      else cur.body+=(cur.body?' ':'')+L;
+    }
+    /* 没有当前题时（标题、卷头）直接丢弃 */
   });
   if(cur&&cur.body.trim())out.push(cur);
-  /* 过滤掉明显的非题目行（标题、说明） */
+
   return out.filter(function(q){
     if(q.body.length<6)return false;
     if(/^(一|二|三|四|五|六|七|八|九|十)[、.]/.test(q.body))return false;
-    if(/^(选择题|填空题|解答题|计算题|注意事项|考试时间|姓名|班级|得分|第[一二]卷)/.test(q.body))return false;
+    if(/^(考前|专题|训练|练习|复习|测试|试卷|第[一二三四五六七八九十]+[讲章节]|选择题|填空题|解答题|计算题|注意事项|本小题)/.test(q.body))return false;
     return true;
   });
 }
 
-/* 知识点打分 */
+/* ============ 知识点打分 ============ */
 function scoreQuestion(body){
-  const scores={};
-  const hits=[];
+  var scores={},hits=[];
   TOPICS.forEach(function(tp){
-    let s=0;
+    var s=0;
     tp.kw.forEach(function(pair){
-      const w=pair[0],weight=pair[1];
+      var w=pair[0],weight=pair[1];
       if(body.indexOf(w)>=0){ s+=weight; hits.push({topic:tp.id,kw:w,w:weight}) }
     });
     if(s>0)scores[tp.id]=s;
@@ -380,55 +427,63 @@ function scoreQuestion(body){
 }
 
 function classify(body){
-  const r=scoreQuestion(body);
-  const arr=Object.keys(r.scores).map(function(id){return {id:id,score:r.scores[id]}})
+  var r=scoreQuestion(body);
+  var arr=Object.keys(r.scores).map(function(id){return {id:id,score:r.scores[id]}})
     .sort(function(a,b){return b.score-a.score});
   if(!arr.length)return {topic:null,score:0,kws:[],alts:[],conf:'none'};
-  const top=arr[0];
-  const second=arr[1];
-  const gap=second?(top.score-second.score):999;
-  let conf='high';
-  if(second&&gap<=1&&second.score>=2)conf='unsure';   /* 两个知识点分数咬得紧 → 有歧义 */
-  else if(top.score<3)conf='weak';                     /* 只命中弱词 → 依据偏弱，但方向不矛盾 */
-  const tp=TOPICS.filter(function(x){return x.id===top.id})[0];
-  const kws=r.hits.filter(function(h){return h.topic===top.id}).map(function(h){return h.kw});
+  var top=arr[0], second=arr[1];
+  var gap=second?(top.score-second.score):999;
+  var conf='high';
+  if(second&&gap<=1&&second.score>=2)conf='unsure';
+  else if(top.score<3)conf='weak';
+  var tp=TOPICS.filter(function(x){return x.id===top.id})[0];
+  var kws=r.hits.filter(function(h){return h.topic===top.id}).map(function(h){return h.kw});
   return {
-    topic:top.id, name:tp.name, grade:tp.grade, score:top.score, kws:kws, conf:conf,
+    topic:top.id, name:tp?tp.name:'', grade:tp?tp.grade:'', score:top.score, kws:kws, conf:conf,
     alts:arr.slice(1,3).map(function(a){
-      const t2=TOPICS.filter(function(x){return x.id===a.id})[0];
-      return {id:a.id,name:t2.name,score:a.score};
+      var t2=TOPICS.filter(function(x){return x.id===a.id})[0];
+      return {id:a.id,name:t2?t2.name:'',score:a.score};
     })
   };
 }
 
 function detectType(body){
-  for(const p of TYPE_PATTERNS){ if(p.re.test(body))return p.t }
+  for(var i=0;i<TYPE_PATTERNS.length;i++){ if(TYPE_PATTERNS[i].re.test(body))return TYPE_PATTERNS[i].t }
   if(/[ABCD][．.、][^ABCD]{1,40}[ABCD][．.、]/.test(body))return '选择';
   return '解答';
 }
 
-/* 完整分析 */
+/* 公式缺失程度：用于提示"这题数学内容没提取到" */
+function formulaLoss(body){
+  var n=(body.match(/⟨公式⟩/g)||[]).length;
+  var plain=body.replace(/⟨[^⟩]*⟩/g,'').replace(/\s/g,'');
+  return {count:n, plainLen:plain.length, severe:(n>=3&&plain.length<25)};
+}
+
+/* ============ 完整分析 ============ */
 function analyze(text){
-  const qs=splitQuestions(text);
-  const rows=qs.map(function(q,i){
-    const c=classify(q.body);
+  var qs=splitQuestions(text);
+  var rows=qs.map(function(q,i){
+    var c=classify(q.body);
+    var fl=formulaLoss(q.body);
     return {
       idx:i+1, no:q.no, body:q.body, len:q.body.length,
       type:detectType(q.body),
       topic:c.topic, topicName:c.name||'', grade:c.grade||'',
-      score:c.score, kws:c.kws, conf:c.conf, alts:c.alts||[]
+      score:c.score, kws:c.kws, conf:c.conf, alts:c.alts||[],
+      formulaCount:fl.count, formulaSevere:fl.severe
     };
   });
   /* 汇总 */
-  const byTopic={};
+  var byTopic={};
   rows.forEach(function(r){
-    const key=r.topic||'__none__';
+    var key=r.topic||'__none__';
     byTopic[key]=byTopic[key]||{id:key,name:r.topicName||'未识别',grade:r.grade||'',items:[]};
     byTopic[key].items.push(r);
   });
-  const groups=Object.keys(byTopic).map(function(k){
-    const g=byTopic[k];
-    const confs=g.items.map(function(x){return x.conf});
+  var groups=Object.keys(byTopic).map(function(k){
+    var g=byTopic[k];
+    var confs=g.items.map(function(x){return x.conf});
     return {
       id:g.id,name:g.name,grade:g.grade,count:g.items.length,items:g.items,
       unsureCount:confs.filter(function(c){return c==='unsure'}).length,
@@ -439,7 +494,7 @@ function analyze(text){
     if(b.id==='__none__')return -1;
     return b.count-a.count;
   });
-  const stats={
+  var stats={
     total:rows.length,
     classified:rows.filter(function(r){return r.topic}).length,
     unclassified:rows.filter(function(r){return !r.topic}).length,
@@ -448,10 +503,26 @@ function analyze(text){
     needCheck:rows.filter(function(r){return r.conf==='unsure'||r.conf==='weak'}).length,
     topicsHit:groups.filter(function(g){return g.id!=='__none__'}).length,
     topicsMissed:TOPICS.length-groups.filter(function(g){return g.id!=='__none__'}).length,
-    totalTopics:TOPICS.length
+    totalTopics:TOPICS.length,
+    formulaSevere:rows.filter(function(r){return r.formulaSevere}).length
   };
   return {rows:rows,groups:groups,stats:stats};
 }
+
+return {TOPICS:TOPICS,splitQuestions:splitQuestions,classify:classify,analyze:analyze,
+  stripNo:stripNo,detectType:detectType,isTopNo:isTopNo,isSubNo:isSubNo,formulaLoss:formulaLoss};
+})();
+if(typeof module!=='undefined'&&module.exports)module.exports=__ENGINE;
+/* 浏览器里把接口挂到全局，供界面层使用 */
+if(typeof window!=='undefined'){
+  window.splitQuestions=__ENGINE.splitQuestions;
+  window.classify=__ENGINE.classify;
+  window.analyze=__ENGINE.analyze;
+  window.stripNo=__ENGINE.stripNo;
+  window.detectType=__ENGINE.detectType;
+  window.formulaLoss=__ENGINE.formulaLoss;
+}
+
 
 /* ===================== 界面 ===================== */
 var $=function(s,r){return (r||document).querySelector(s)};
@@ -615,7 +686,7 @@ function paintStats(){
     '<div class="s"><div class="k">题目总数</div><div class="v">'+rows.length+'<small> 题</small></div></div>'
    +'<div class="s"><div class="k">涉及知识点</div><div class="v" style="color:var(--pri)">'+nTopic+'<small> 个</small></div></div>'
    +'<div class="s"><div class="k">需核对</div><div class="v" style="color:'+(unsure+weak?'var(--amber)':'var(--teal)')+'">'+(unsure+weak)+'<small> 题</small></div><div class="k" style="margin-top:2px">有歧义 '+unsure+' · 依据弱 '+weak+'</div></div>'
-   +'<div class="s"><div class="k">知识点库</div><div class="v" style="font-size:15px">'+R.stats.topicsHit+'<small> / '+R.stats.totalTopics+'</small></div><div class="k" style="margin-top:2px">命中 / 全部</div></div>';
+   +'<div class="s"><div class="k">公式缺失</div><div class="v" style="color:'+(R.stats.formulaSevere?'var(--rose)':'var(--teal)')+'">'+R.stats.formulaSevere+'<small> 题</small></div><div class="k" style="margin-top:2px">数学内容没提取到</div></div>';
 }
 
 $$('#viewSeg button').forEach(function(b){
@@ -651,6 +722,7 @@ function qBlock(r){
     +'<span class="tagx t">'+esc(r.type)+'</span>'
     +confTag(r.conf)
     +(changed?'<span class="tagx" style="background:var(--pri-soft);color:var(--pri)">已手改</span>':'')
+    +(r.formulaSevere?'<span class="tagx w">公式缺失</span>':'')
     +'<span class="kw">'+(r.kws&&r.kws.length?('命中：'+esc(r.kws.slice(0,5).join('、'))):'无命中词')+'</span></div>'
     +'<div class="bd">'+hl(r.body,r.kws)+'</div>'
     +(r.alts&&r.alts.length?'<div class="alt">也可能是：'+r.alts.map(function(a){return esc(a.name)+'（'+a.score+'）'}).join('　')+'</div>':'')
