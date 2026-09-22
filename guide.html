@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#3B5BDB">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>班级助手 · 使用说明</title>
+<title>使用说明 · 班级助手 + 数学工具包</title>
 <style>
 :root{
   --pri:#3B5BDB; --pri-l:#5C7CFA; --pri-soft:#EDF1FE;
@@ -83,101 +83,74 @@ footer{text-align:center;font-size:12.5px;color:var(--muted);padding:8px 16px 0;
 <body>
 <header><div class="in">
   <span class="badge">📘 使用说明 · 建议先读一遍</span>
-  <h1>班级助手</h1>
-  <p>班主任 + 数学老师的随身工作台<br>成绩分析 · 临界生 · 错题归因 · 重点关注 · 一键报告</p>
+  <h1>班级助手 · 数学工具包</h1>
+  <p>班主任 + 数学老师的随身工作台<br>成绩分析 · 临界生 · 错题归因 · 一键报告 · 卷子按知识点自动分组</p>
 </div></header>
 
 <main class="wrap">
 
   <div class="card">
     <h2><span class="em">🎁</span>这是给你的</h2>
-    <p style="margin:0;font-size:14.5px;color:var(--fg2)">这个工具帮你把班上的成绩、错题、考勤、积分管起来，并且<b>数据只存在你自己的手机/电脑里，不上传任何服务器</b>。不用注册、不用登录。</p>
-    <div class="ok">它是一个完整的小软件，<b>不需要安装、不需要下载</b>。打开下面的网址就能用。</div>
+    <p style="margin:0;font-size:14.5px;color:var(--fg2)">这个工具帮你把班上的成绩、错题、考勤、积分管起来，并且<b>数据只存在你自己的设备里，不上传任何服务器</b>。不用注册、不用登录、不用联网。</p>
+    <div class="ok">收到的是<b>几个网页文件</b>，每个都是一个完整的小软件，<b>不需要安装、不需要联网</b>，双击/点开就能用。</div>
+    <table>
+      <tr><th style="width:150px">文件</th><th>干什么用</th></tr>
+      <tr><td><code>班级助手-手机版.html</code></td><td><b>手机上用的班级工作台</b>：成绩分析、临界生、错题归因、重点关注、一键报告。<b>主要用这个。</b></td></tr>
+      <tr><td><code>班级教学仪表盘.html</code></td><td>同一个工具<b>电脑版</b>，屏幕大、看得全，适合在电脑上录成绩、出报告。</td></tr>
+      <tr><td><code>数学题按知识点分组.html</code></td><td><b>把 Word 卷子按知识点自动归类</b>，导出成可编辑的 Word。讲解见下面第 2 节。</td></tr>
+      <tr><td><code>PDF转Word.html</code></td><td>把 PDF 试卷转成 Word，方便改题、排版。（<code>PDF转Word-手机版.html</code> 是手机用的）</td></tr>
+    </table>
   </div>
 
   <div class="card">
-    <h2><span class="em">🚪</span>两个入口</h2>
-    <p style="margin:0 0 10px;font-size:14.5px;color:var(--fg2)">我把两个版本都放在这里，你按设备选：</p>
-    <div class="step"><div class="num">📱</div><div class="body">
-      <b>手机上用这个</b>
-      <span><a href="app.html" style="font-weight:700">打开手机版 → 班级助手</a><br>
-      界面是为手机重新做的，底部有 5 个标签，适合随手记、考试后看名单。</span>
+    <h2><span class="em">📚</span>数学题按知识点分组（你可能最需要这个）</h2>
+    <p style="margin:0 0 10px;font-size:14.5px;color:var(--fg2)">
+      期末复习的时候，一篇卷子里的题是混着排的。这个工具把整份卷子<b>按知识点重新归类</b>——
+      全等三角形的题放一起、二次函数的题放一起，于是「同一个知识点的题」自然凑成了<b>题组</b>，讲评和专项训练都能直接用。
+    </p>
+    <div class="step"><div class="num">1</div><div class="body">
+      <b>把 Word 卷子拖进去</b>
+      <span>打开工具 → 直接把 <code>.docx</code> 文件<b>拖到虚线框里</b>（或点一下选文件）。<br>
+      它<b>不需要你先复制粘贴</b>，会自己把 Word 里的题目文字读出来，读完自动分组。</span>
     </div></div>
-    <div class="step"><div class="num">💻</div><div class="body">
-      <b>电脑上用这个</b>
-      <span><a href="desktop.html" style="font-weight:700">打开电脑版 → 班级教学仪表盘</a><br>
-      屏幕大，适合导成绩、看表格、批量出报告、打印。</span>
+    <div class="step"><div class="num">2</div><div class="body">
+      <b>看结果，顺手核对</b>
+      <span>三个视图：<span class="pill">按知识点分组</span>看归类结果、<span class="pill">题目清单</span>看题号顺序、<span class="pill a">需核对</span>看它<b>拿不准</b>的题。<br>
+      判错的题点一下「<b>换个类别</b>」就能改成对的，改完导出就是准的。</span>
     </div></div>
-    <div class="tip">两个版本<b>数据是各存各的</b>，需要互通时用「导出加密备份 / 导入备份」搬运，见第 3 节。<br>
-    两边用的是同一套统计口径和同一套加密格式，备份文件可以互相导入。</div>
-  </div>
-
-  <div class="card">
-    <h2><span class="em">🔧</span>另外三个小工具（顺手做的）</h2>
-    <p style="margin:0 0 10px;font-size:14.5px;color:var(--fg2)">除了班级管理，还做了一个 PDF 转 Word 的小工具，处理卷子、资料时能用上。</p>
-
-    <div class="step"><div class="num">📄</div><div class="body">
-      <b>PDF 转 Word（电脑版，推荐）</b>
-      <span><a href="pdf-word.html" style="font-weight:700">打开 PDF 转 Word →</a><br>
-      把 PDF 里的文字提取出来，导出成 Word 可以编辑的格式。<b>支持一次拖入多个 PDF 合并处理</b>，也能直接设排版选项。</span>
+    <div class="step"><div class="num">3</div><div class="body">
+      <b>导出 Word，随你手改</b>
+      <span>点「<b>⬇ 导出 Word（.docx）</b>」得到一个真正的 Word 文件，用 Word / WPS 打开就能继续改：
+      删掉不要的、调顺序、加标题、印出来当题组卷子。</span>
     </div></div>
-
-    <div class="step"><div class="num">📱</div><div class="body">
-      <b>PDF 转 Word（手机版）</b>
-      <span><a href="pdf-word-mobile.html" style="font-weight:700">打开手机版 →</a><br>
-      手机上用这个，打开的更快（不会一开始就下载 1 MB 多的解析库）。功能一样。</span>
-    </div></div>
-
-    <div class="ok"><b>为什么推荐用这个而不是网上的转换网站？</b><br>
-      网上的免费转换站都要<b>把你的文件上传到他们的服务器</b>。卷子里有学生姓名、班级、分数，不该随便传。<br>
-      这个工具<b>全程在你自己的设备上处理，不联网、不上传</b>，可以放心用。</div>
-
-    <div class="amber"><b>效果说明（先说清楚，免得期待落空）：</b>
-      <ul style="margin:6px 0 0">
-        <li><b>文字版 PDF</b>（Word/WPS 导出的、网上下的真题）→ 效果很好，文字、标点、数学符号（√ − ∠ ² ）都能提出来</li>
-        <li><b>扫描件 / 拍照的 PDF</b>（整页是图片）→ <b>提不出文字</b>，这种情况要用带 OCR 的软件（WPS 有）</li>
-        <li><b>复杂公式</b>→ 可能变形（分数挤成一行、根号丢失），建议提取后在 Word 里重打</li>
-        <li><b>表格</b>→ 文字会提出来，但合并单元格和边框会丢，需要自己重排</li>
-      </ul>
+    <div class="warn">
+      <b>有一件事必须先说清楚：公式。</b>如果原卷子里的数学式子是用 <b>Word/WPS 公式编辑器（MathType）</b>做的，
+      它在文档里是一段<b>私有二进制对象</b>，任何网页工具都读不出来——这是格式本身的限制，不是工具的毛病。
+      工具会把读不出来的地方标成 <code>⟨公式⟩</code>，你<b>照着原卷把那几个式子补上</b>就行（补完再分组会更准）。<br>
+      如果式子是用较新的 Word 打的（OMML 格式），工具能<b>直接读成文字</b>，不用补。
     </div>
-
-    <div class="tip"><b>其实还有个更省事的办法：</b>直接<b>用 Word 或 WPS 打开 PDF 文件</b>，它会问你要不要转成可编辑文档，点「是」就行。
-      不花钱、还原度比本工具好、也不用装东西。本工具的优势是<b>完全本地不上传</b>，以及能一次批量处理多个 PDF。</div>
-    <div class="step" style="border-top:.5px solid var(--line);margin-top:6px;padding-top:14px"><div class="num">🧩</div><div class="body">
-      <b>数学题按知识点分组</b>
-      <span><a href="math-topics.html" style="font-weight:700">打开数学题分组 →</a><br>
-      把一份卷子或一堆题目粘进去，自动按知识点归类。做专题复习、错题重练、分层作业、检查组卷覆盖时很好用。</span>
-    </div></div>
-
-    <div class="amber"><b>数学题分组是「关键词匹配」，不是人工智能 —— 先说清楚：</b>
-      <ul style="margin:7px 0 0">
-        <li>它认识的是题目里出现的<b>字词</b>：看到「二次函数」「抛物线」「顶点」就归到二次函数，看到「不等式」「解集」就归到不等式</li>
-        <li>题目里<b>关键字词明确</b>的判得准。实测 27 道中考风格题：<b>27 题全部归类，24 题判断明确</b>，只有 4 题需要人工核对</li>
-        <li>题目<b>绕弯说</b>的（如「某商品两次降价求百分率」）可能判错，工具会专门列出来让你手动改</li>
-        <li>每题都会显示<b>命中了哪些词</b>，方便你核对；不确定的题点「换个类别」就能改</li>
-        <li>页面底部可以<b>自己增删关键词</b>，用得越久越贴合你们教材的说法</li>
-      </ul>
+    <div class="tip">
+      <b>越用越准：</b>页面底部可以自己<b>增删关键词</b>。比如你把「动点」加进「四边形」那一类，
+      以后带「动点」的题就会自动归过去。改过的关键词会记住，下次打开还在。
     </div>
-
   </div>
 
   <div class="card">
     <h2><span class="n">1</span>第一次打开（3 步）</h2>
     <div class="step"><div class="num">1</div><div class="body">
-      <b>用浏览器打开上面的网址</b>
-      <span>iPhone 一定用 <b>Safari</b>；安卓用 <b>Chrome 或 Edge</b>。<br>
-      别在微信里点开——微信会把网页放进它内置的浏览器，加到主屏幕和数据保存都会出问题。</span>
+      <b>把文件保存到手机上</b>
+      <span>微信里收到后，点文件 → 右上角「⋯」→「用其他应用打开」/「保存到手机」；或者传到「文件」App / 下载目录。</span>
     </div></div>
     <div class="step"><div class="num">2</div><div class="body">
-      <b>添加到主屏幕（重要）</b>
-      <span>iPhone：点底部中间的 <b>分享按钮</b>（方框加箭头）→ 往下滑找到「<b>添加到主屏幕</b>」→ 添加。<br>
-      安卓 Chrome：点右上角 <b>⋮</b> → 「<b>添加到主屏幕</b>」。</span>
+      <b>用浏览器打开它</b>
+      <span>安卓：文件管理器里长按 → 打开方式 → <b>Chrome / Edge</b>。<br>
+      iPhone：存到「文件」App → 点开 → 分享 → 用 <b>Safari</b> 打开。</span>
     </div></div>
     <div class="step"><div class="num">3</div><div class="body">
-      <b>从桌面图标打开，设一个密码</b>
-      <span>至少 4 位。这个密码用来加密数据，只存在你设备上，<b>别人看不到</b>。</span>
+      <b>设置一个密码</b>
+      <span>至少 4 位。这个密码用来加密数据，只存在你手机上，<b>我也看不到</b>。</span>
     </div></div>
-    <div class="ok"><b>为什么要「添加到主屏幕」？</b>加到主屏后是一个独立的应用，全屏没有地址栏，也不会被浏览器当成普通网页清理掉——<b>数据保存更稳</b>。</div>
+    <div class="tip"><b>强烈建议：</b>打开后点浏览器菜单 →「<b>添加到主屏幕</b>」。以后从桌面图标进入，全屏、没有地址栏，跟 App 一样用。</div>
     <div class="warn"><b>请牢记这个密码。</b>它是解密数据的唯一钥匙，忘了就<b>打不开数据了</b>，没有任何后门。建议同时导出一份加密备份（见第 3 节）。</div>
   </div>
 
@@ -221,16 +194,15 @@ footer{text-align:center;font-size:12.5px;color:var(--muted);padding:8px 16px 0;
   </div>
 
   <div class="card">
-    <h2><span class="n">4</span>遇到问题怎么办</h2>
-    <table>
-      <tr><th style="width:38%">现象</th><th>怎么处理</th></tr>
-      <tr><td>在微信里点开，界面怪怪的 / 数据存不住</td><td>微信内置浏览器有限制。<b>点右上角「⋯」→「在浏览器打开」</b>，或者直接复制网址到 Safari / Chrome 打开。</td></tr>
-      <tr><td>弹红色提示条「当前无法保存数据」</td><td>先<b>导出加密备份</b>保住数据，再换浏览器重新打开、导入备份。</td></tr>
-      <tr><td>弹「本地存储不可用」</td><td><b>数据没丢</b>，只是这个浏览器不让存。换 Safari / Chrome 重新打开。<br>如果是无痕模式，换成普通窗口。</td></tr>
-      <tr><td>iPhone 上加不了主屏幕</td><td>确认是用 <b>Safari</b> 打开的（Chrome 在 iOS 上不支持加主屏）。分享按钮是底部中间那个<b>方框+向上箭头</b>。</td></tr>
-      <tr><td>打不开 / 白屏</td><td>检查网址有没有输错；或者换个网络试试。还不行就告诉我。</td></tr>
-      <tr><td>换手机 / 换电脑了</td><td>重新打开网址 → 导入之前导出的加密备份。见第 3 节。</td></tr>
-    </table>
+    <h2><span class="n">4</span>手机上打不开 / 提示存储不可用怎么办</h2>
+    <p style="margin:0 0 8px;font-size:14.5px;color:var(--fg2)">极少数情况下（尤其是 iPhone 直接在「文件」App 里点开），浏览器会限制网页存数据。工具会自动尝试几种存储方式，如果都不行会弹红色提示条告诉你。</p>
+    <ul>
+      <li><b>不要用无痕 / 隐私模式</b>——那种模式下浏览器一定不让存数据。换普通窗口打开。</li>
+      <li><b>用 Chrome 或 Edge 打开</b>（安卓）；iPhone 用 Safari，并且在 设置 → Safari → 高级 里确认没有打开「阻止所有 Cookie」。</li>
+      <li>如果提示「<b>当前无法保存数据</b>」：先<b>导出加密备份</b>存好，然后换一个浏览器（或换电脑）重新打开、再导入备份。</li>
+      <li>弹窗提示「本地存储不可用」时，别慌，<b>数据没丢</b>——是这个浏览器不让存，换浏览器 + 导入备份即可。</li>
+      <li>微信里直接点开有时会被限制，点右上角「⋯」→「<b>在浏览器打开</b>」。</li>
+    </ul>
   </div>
 
   <div class="card">
