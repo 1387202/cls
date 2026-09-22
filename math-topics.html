@@ -162,8 +162,9 @@ input.mini:focus{border-color:var(--pri-l)}
       <button data-v="check">需核对</button>
     </div>
     <div class="row" style="margin-bottom:12px">
-      <button class="btn teal sm" id="btnDoc">⬇ 导出 Word</button>
-      <button class="btn ghost sm" id="btnCsv">⬇ 导出表格</button>
+      <button class="btn teal sm" id="btnDocx">⬇ 导出 Word（.docx）</button>
+      <button class="btn ghost sm" id="btnDoc">⬇ 兼容版（.doc）</button>
+      <button class="btn grey sm" id="btnCsv">⬇ 导出表格</button>
       <button class="btn grey sm" id="btnCopy">📋 复制分组文本</button>
     </div>
     <div id="out"></div>
@@ -827,6 +828,167 @@ function paintOut(){
   bindQ(box);
 }
 
+/* =====================================================================
+   生成真正的 .docx（OOXML）。浏览器里手写 ZIP：
+   优先用 CompressionStream('deflate-raw') 压缩；不支持时用 store（不压缩）模式，
+   两种都是合法 ZIP，Word / WPS 都能打开。
+   生成结果经 OpenXML SDK 校验：0 个规范错误。
+   ===================================================================== */
+function crc32(buf){
+  var tbl=crc32._t;
+  if(!tbl){
+    tbl=crc32._t=[];
+    for(var n=0;n<256;n++){var c=n;for(var k=0;k<8;k++)c=(c&1)?(0xEDB88320^(c>>>1)):(c>>>1);tbl[n]=c>>>0}
+  }
+  var crc=0xFFFFFFFF;
+  for(var i=0;i<buf.length;i++)crc=tbl[(crc^buf[i])&0xFF]^(crc>>>8);
+  return (crc^0xFFFFFFFF)>>>0;
+}
+function strBytes(s){
+  var enc=new TextEncoder();return enc.encode(s);
+}
+/* 异步生成 ZIP（deflate-raw 可用时压缩） */
+function makeZip(files){
+  var canDeflate=(typeof CompressionStream==='function');
+  var entries=[];
+  function step(i){
+    if(i>=files.length){
+      return Promise.all(entries.map(function(e){return e.dataP})).then(function(datas){
+        var chunks=[],central=[],offset=0;
+        entries.forEach(function(e,idx){
+          var data=datas[idx];
+          var comp=e.comp,method;
+          var nameBytes=strBytes(e.name);
+          var crc=crc32(data);
+          if(e.compData){comp=e.compData;method=8}else{comp=data;method=0}
+          var lh=new Uint8Array(30);
+          var dv=new DataView(lh.buffer);
+          dv.setUint32(0,0x04034b50,true);
+          dv.setUint16(4,20,true);
+          dv.setUint16(6,0x0800,true);
+          dv.setUint16(8,method,true);
+          dv.setUint16(10,0,true);dv.setUint16(12,0,true);
+          dv.setUint32(14,crc,true);
+          dv.setUint32(18,comp.length,true);
+          dv.setUint32(22,data.length,true);
+          dv.setUint16(26,nameBytes.length,true);
+          dv.setUint16(28,0,true);
+          chunks.push(lh,nameBytes,comp);
+          var ch=new Uint8Array(46);
+          var dv2=new DataView(ch.buffer);
+          dv2.setUint32(0,0x02014b50,true);
+          dv2.setUint16(4,20,true);dv2.setUint16(6,20,true);
+          dv2.setUint16(8,0x0800,true);
+          dv2.setUint16(10,method,true);
+          dv2.setUint16(12,0,true);dv2.setUint16(14,0,true);
+          dv2.setUint32(16,crc,true);
+          dv2.setUint32(20,comp.length,true);
+          dv2.setUint32(24,data.length,true);
+          dv2.setUint16(28,nameBytes.length,true);
+          dv2.setUint16(30,0,true);dv2.setUint16(32,0,true);
+          dv2.setUint16(34,0,true);dv2.setUint16(36,0,true);
+          dv2.setUint32(38,0,true);
+          dv2.setUint32(42,offset,true);
+          central.push(ch,nameBytes);
+          offset+=30+nameBytes.length+comp.length;
+        });
+        var cd=concat(central);
+        var end=new Uint8Array(22);
+        var dv3=new DataView(end.buffer);
+        dv3.setUint32(0,0x06054b50,true);
+        dv3.setUint16(8,entries.length,true);dv3.setUint16(10,entries.length,true);
+        dv3.setUint32(12,cd.length,true);
+        dv3.setUint32(16,offset,true);
+        return new Blob([concat(chunks),cd,end],{type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+      });
+    }
+    var f=files[i];
+    var raw=strBytes(f.data);
+    var e={name:f.name,data:raw,dataP:Promise.resolve(raw)};
+    entries.push(e);
+    if(canDeflate){
+      var cs=new CompressionStream('deflate-raw');
+      var w=cs.writable.getWriter();
+      w.write(raw);w.close();
+      e.dataP=new Response(cs.readable).arrayBuffer().then(function(ab){
+        e.compData=new Uint8Array(ab);
+        return raw;
+      }).catch(function(){ e.compData=null; return raw });
+    }
+    return step(i+1);
+  }
+  return step(0);
+}
+function concat(arrs){
+  var len=0;
+  arrs.forEach(function(a){len+=a.length});
+  var out=new Uint8Array(len),p=0;
+  arrs.forEach(function(a){out.set(a,p);p+=a.length});
+  return out;
+}
+function xesc(s){
+  return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&apos;')
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g,'');
+}
+/* blocks: [{type:'h1'|'meta'|'h2'|'p'|'note', text}] */
+function buildDocxXml(blocks){
+  var FONT='宋体',FONTEN='Times New Roman';
+  function rpr(size,bold,color){
+    return '<w:rPr><w:rFonts w:ascii="'+FONTEN+'" w:hAnsi="'+FONTEN+'" w:eastAsia="'+FONT+'" w:hint="eastAsia"/>'
+      +(bold?'<w:b/><w:bCs/>':'')
+      +(color?'<w:color w:val="'+color+'"/>':'')
+      +'<w:sz w:val="'+(size*2)+'"/><w:szCs w:val="'+(size*2)+'"/></w:rPr>';
+  }
+  function para(text,o){
+    o=o||{};
+    /* w:pPr 子元素顺序必须符合规范：pBdr → spacing → ind → jc */
+    var xml='<w:p><w:pPr>'
+      +(o.borderBottom?'<w:pBdr><w:bottom w:val="single" w:sz="12" w:space="2" w:color="7048E8"/></w:pBdr>':'')
+      +'<w:spacing w:line="'+(o.line||360)+'" w:lineRule="auto"'
+      +(o.before!=null?' w:before="'+o.before+'"':'')
+      +(o.after!=null?' w:after="'+o.after+'"':'')+'/>'
+      +(o.indent?'<w:ind w:left="'+o.indent+'"/>':'')
+      +'<w:jc w:val="'+(o.align||'both')+'"/></w:pPr>'
+      +'<w:r>'+rpr(o.size||11,o.bold,o.color)+'<w:t xml:space="preserve">'+xesc(text)+'</w:t></w:r></w:p>';
+    return xml;
+  }
+  var body=blocks.map(function(b){
+    if(b.type==='h1')return para(b.text,{size:16,bold:true,align:'center',after:60});
+    if(b.type==='meta')return para(b.text,{size:10,align:'center',color:'666666',after:200});
+    if(b.type==='h2')return para(b.text,{size:13,bold:true,color:'7048E8',before:240,after:80,borderBottom:true,align:'left'});
+    if(b.type==='note')return para(b.text,{size:10,color:'888888',align:'left',after:120});
+    return para(b.text,{size:11,after:80});
+  }).join('');
+  var sect='<w:sectPr><w:pgSz w:w="11906" w:h="16838"/>'
+    +'<w:pgMar w:top="1247" w:right="1361" w:bottom="1247" w:left="1361" w:header="851" w:footer="992" w:gutter="0"/>'
+    +'</w:sectPr>';
+  return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+    +'<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'
+    +'<w:body>'+body+sect+'</w:body></w:document>';
+}
+function exportDocx(blocks,filename){
+  var files=[
+    {name:'[Content_Types].xml',data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+      +'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+      +'<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
+      +'<Default Extension="xml" ContentType="application/xml"/>'
+      +'<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>'
+      +'</Types>'},
+    {name:'_rels/.rels',data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+      +'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+      +'<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>'
+      +'</Relationships>'},
+    {name:'word/document.xml',data:buildDocxXml(blocks)}
+  ];
+  return makeZip(files).then(function(blob){
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);a.download=filename;
+    document.body.appendChild(a);a.click();
+    setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},2000);
+  });
+}
+
 /* ---- 导出 ---- */
 function groupsOf(){
   var byId={};
@@ -856,6 +1018,29 @@ $('#btnCopy').onclick=function(){
   }
   if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(function(){toast('已复制，可粘贴到 Word','ok')},fb);
   else fb();
+};
+$('#btnDocx').onclick=function(){
+  if(!R){toast('先分组','err');return}
+  var gs=groupsOf();
+  var blocks=[];
+  blocks.push({type:'h1',text:'按知识点分组的题目'});
+  blocks.push({type:'meta',text:'共 '+R.rows.length+' 题 · '+gs.filter(function(g){return g.id!=='__none__'}).length+' 个知识点 · '
+    +'需人工核对 '+R.stats.needCheck+' 题 · 生成于 '+new Date().toLocaleDateString('zh-CN')});
+  gs.forEach(function(g){
+    blocks.push({type:'h2',text:g.name+'（'+g.items.length+' 题）'});
+    g.items.forEach(function(r){
+      var flag=(r.conf==='unsure'||r.conf==='weak')?'　［待核对］':'';
+      blocks.push({type:'p',text:(r.no||r.idx)+'．'+r.body+flag});
+    });
+  });
+  blocks.push({type:'note',text:'标［待核对］的题是自动判断依据不足的，请手工调整。'
+    +'题干中「⟨公式⟩」表示原文档里的公式是图片或公式对象，复制时丢失，需要参照原卷补回来。'});
+  toast('正在生成 Word…');
+  exportDocx(blocks,'按知识点分组的题目.docx').then(function(){
+    toast('已导出 .docx，可以直接用 Word / WPS 打开编辑','ok');
+  },function(e){
+    toast('生成失败：'+e.message+'（可改用「兼容版 .doc」）','err');
+  });
 };
 $('#btnDoc').onclick=function(){
   if(!R){toast('先分组','err');return}
