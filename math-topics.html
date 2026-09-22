@@ -344,6 +344,11 @@ const TOPICS = [
   {id:'rational', grade:'七上', name:'有理数', kw:[
     ['有理数',3],['相反数',3],['绝对值',3],['数轴',3],['倒数',3],['科学记数法',3],
     ['乘方',2],['近似数',3],['有效数字',3],['正数',1],['负数',1],['数轴上的点',2],['比大小',2]
+  ],
+  /* 绝对值常写成 |x－2|＝5，正文里没有"绝对值"三个字，只能靠符号认 */
+  sym:[
+    ['[|｜][^|｜]{1,14}[|｜]\\s*[＝=]',3,'绝对值符号'],
+    ['[－-]\\s*\\d+\\s*[|｜]',2,'负数的绝对值']
   ]},
   {id:'algebra-add', grade:'七上', name:'整式的加减', kw:[
     ['整式',3],['单项式',3],['多项式',3],['同类项',3],['合并同类项',3],['去括号',3],
@@ -450,6 +455,12 @@ const TOPICS = [
   ]},
   {id:'func-inverse', grade:'九下', name:'反比例函数', kw:[
     ['反比例函数',3],['反比例',3],['双曲线',3],['k的几何意义',3],['成反比例',3],['乘积一定',2]
+  ],
+  /* 路程一定时"时间与速度成反比"是反比例的标准应用。
+     "速度""时间"单独出现可能是行程/一次函数，所以要求同时出现才认。 */
+  all:[
+    ['速度','时间',3,'路程一定·时间与速度'],
+    ['面积','高',2,'面积一定·底与高']
   ]},
   {id:'similar', grade:'九下', name:'相似', kw:[
     ['相似三角形',3],['相似比',3],['位似',3],['平行线分线段成比例',3],['黄金分割',3],
@@ -555,14 +566,34 @@ function splitQuestions(text){
   });
 }
 
-/* ============ 知识点打分 ============ */
+/* ============ 知识点打分 ============
+   三种规则：
+   1) kw： [关键词, 权重]          —— 正文里出现这个词就加分
+   2) sym：[正则源码, 权重, 说明] —— 数学式子的"写法"本身是强信号。
+        例如绝对值写成 |x－2|＝5 时，正文里没有"绝对值"三个字，
+        靠关键词永远匹配不到，必须看符号。
+   3) all：[词A,词B,...,权重,说明] —— 这几个词**同时**出现才加分。
+        "速度"和"时间"单独出现可能是行程问题，但一起出现基本就是
+        反比例（路程一定，时间与速度成反比）。
+*/
 function scoreQuestion(body){
   var scores={},hits=[];
   TOPICS.forEach(function(tp){
     var s=0;
-    tp.kw.forEach(function(pair){
+    (tp.kw||[]).forEach(function(pair){
       var w=pair[0],weight=pair[1];
       if(body.indexOf(w)>=0){ s+=weight; hits.push({topic:tp.id,kw:w,w:weight}) }
+    });
+    (tp.sym||[]).forEach(function(rule){
+      var re=new RegExp(rule[0]);
+      if(re.test(body)){ s+=rule[1]; hits.push({topic:tp.id,kw:rule[2]||'式子特征',w:rule[1]}) }
+    });
+    (tp.all||[]).forEach(function(rule){
+      /* 最后一对是 [权重, 说明]，前面都是必须同时出现的词 */
+      var weight=rule[rule.length-2], label=rule[rule.length-1];
+      var words=rule.slice(0,rule.length-2);
+      var ok=words.every(function(w){return body.indexOf(w)>=0});
+      if(ok){ s+=weight; hits.push({topic:tp.id,kw:label,w:weight}) }
     });
     if(s>0)scores[tp.id]=s;
   });
