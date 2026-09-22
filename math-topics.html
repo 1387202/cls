@@ -118,8 +118,24 @@ input.mini:focus{border-color:var(--pri-l)}
 <main class="wrap">
 
   <div class="card" id="inputCard">
-    <h2>① 粘贴题目 <span class="sub">整份卷子直接贴</span></h2>
-    <textarea class="inp" id="ta" rows="9" placeholder="把卷子内容粘到这里，例如：&#10;1．下列各数中，是无理数的是（  ）&#10;A．0.5  B．√2  C．22/7  D．3.14&#10;2．解方程：2x＋5＝17&#10;..."></textarea>
+    <h2>① 导入卷子 <span class="sub">支持 .docx 和 .txt</span></h2>
+    <div class="drop" id="dropZone">
+      <div style="font-size:34px;line-height:1;margin-bottom:8px">📄</div>
+      <b>点这里选 Word 文档（.docx），或拖进来</b>
+      <span>会自动读取正文，包括里面的数学公式（能读多少读多少）</span>
+    </div>
+    <input type="file" id="docxInput" accept=".docx,.txt,application/vnd.openxmlformats-officedocument.wordprocessingml.document" style="display:none">
+    <div id="docxMsg"></div>
+    <div class="note" style="margin-top:11px">
+      <b>为什么推荐直接导入 .docx？</b>因为从 Word 里<b>全选复制</b>再粘贴到网页，公式会丢失（变成空白），
+      而直接读文件能把文档里的公式尽量读出来。读完后文字会填到下面的框里，你可以再改。
+    </div>
+    <details style="margin-top:12px">
+      <summary style="cursor:pointer;font-size:14px;color:var(--pri);font-weight:600">或者：直接粘贴文字</summary>
+      <div style="padding-top:10px">
+        <textarea class="inp" id="ta" rows="8" placeholder="把卷子内容粘到这里…"></textarea>
+      </div>
+    </details>
     <div class="row" style="margin-top:11px">
       <button class="btn" id="btnGo">开始分组</button>
       <button class="btn grey" id="btnDemo">填入示例卷子</button>
@@ -193,6 +209,132 @@ input.mini:focus{border-color:var(--pri-l)}
 <div id="toastbox"></div>
 
 <script>
+/* =====================================================================
+   读取 .docx（浏览器端）
+   docx 本质是 ZIP，正文在 word/document.xml。
+   浏览器没有同步解压 API，所以这里手写 ZIP 解析：
+   - store（不压缩，method 0）直接读
+   - deflate（method 8）用 DecompressionStream('deflate-raw') 解压
+   Word / WPS 保存的 docx 都用 deflate，所以正常情况下能读。
+   ===================================================================== */
+
+/* 从 ZIP 二进制里找出指定文件的压缩数据 */
+function unzipEntry(buf, name) {
+  var u8 = buf instanceof Uint8Array ? buf : new Uint8Array(buf);
+  var dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
+  var i, eocd = -1;
+  /* 从尾部往前找 End of Central Directory（可能带注释，最多回退 64KB） */
+  for (i = u8.length - 22; i >= Math.max(0, u8.length - 66000); i--) {
+    if (dv.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
+  }
+  if (eocd < 0) throw new Error('不是有效的 ZIP/docx 文件（找不到目录结尾）');
+  var count = dv.getUint16(eocd + 10, true);
+  var cdOff = dv.getUint32(eocd + 16, true);
+  var p = cdOff, found = null;
+  var dec = new TextDecoder('utf-8');
+  for (var k = 0; k < count; k++) {
+    if (dv.getUint32(p, true) !== 0x02014b50) break;
+    var method = dv.getUint16(p + 10, true);
+    var compSize = dv.getUint32(p + 20, true);
+    var nameLen = dv.getUint16(p + 28, true);
+    var extraLen = dv.getUint16(p + 30, true);
+    var commentLen = dv.getUint16(p + 32, true);
+    var lho = dv.getUint32(p + 42, true);
+    var fname = dec.decode(u8.subarray(p + 46, p + 46 + nameLen));
+    if (fname === name) { found = { method: method, compSize: compSize, lho: lho }; break; }
+    p += 46 + nameLen + extraLen + commentLen;
+  }
+  if (!found) return null;
+  /* 本地头的文件名/扩展区长度可能和中央目录不同，必须重新读 */
+  var lp = found.lho;
+  if (dv.getUint32(lp, true) !== 0x04034b50) throw new Error('ZIP 结构损坏（本地文件头无效）');
+  var lNameLen = dv.getUint16(lp + 26, true);
+  var lExtraLen = dv.getUint16(lp + 28, true);
+  var dataStart = lp + 30 + lNameLen + lExtraLen;
+  return { method: found.method, data: u8.subarray(dataStart, dataStart + found.compSize) };
+}
+
+/* 解压 entry */
+function inflateEntry(entry) {
+  if (entry.method === 0) return Promise.resolve(entry.data);
+  if (entry.method !== 8) return Promise.reject(new Error('不支持的压缩方式（method ' + entry.method + '）'));
+  if (typeof DecompressionStream !== 'function') {
+    return Promise.reject(new Error('这个浏览器不支持解压（DecompressionStream 不可用），请换较新版本的 Chrome / Edge / Safari'));
+  }
+  var ds = new DecompressionStream('deflate-raw');
+  var w = ds.writable.getWriter();
+  w.write(entry.data);
+  w.close();
+  return new Response(ds.readable).arrayBuffer().then(function (ab) { return new Uint8Array(ab); });
+}
+
+/* 读 docx 正文，返回 Promise<string> */
+function readDocx(file) {
+  return file.arrayBuffer().then(function (buf) {
+    var entry = unzipEntry(buf, 'word/document.xml');
+    if (!entry) throw new Error('文件里找不到 word/document.xml（可能不是 Word 文档，或这是老的 .doc 格式）');
+    return inflateEntry(entry);
+  }).then(function (bytes) {
+    var xml = new TextDecoder('utf-8').decode(bytes);
+    return docxXmlToText(xml);
+  });
+}
+
+function unescXml(s) {
+  return s.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&')
+          .replace(/&quot;/g, '"').replace(/&apos;/g, "'");
+}
+
+/* Word XML → 纯文本。OMML 公式转成可见字符，OLE 对象标为 ⟨公式⟩ */
+function docxXmlToText(xml) {
+  var paras = xml.match(/<w:p(?:\s[^>]*)?>[\s\S]*?<\/w:p>/g) || [];
+  var lines = [];
+  /* 注意分支顺序：<w:tab/> 必须排在 <w:t> 前面。
+     否则 <w:t(?:\s[^>]*)?> 会把 "<w:tab/>" 当成 "<w:t" + "ab/" 匹配掉，
+     走到 w:t 分支时 m[1] 是 undefined，整页脚本报错。 */
+  var re = new RegExp(
+    '<w:tab\\b[^>]*\\/>|<w:br\\b[^>]*\\/>|<w:cr\\b[^>]*\\/>' +
+    '|<w:object\\b[\\s\\S]*?<\\/w:object>' +
+    '|<m:oMath\\b[\\s\\S]*?<\\/m:oMath>' +
+    '|<w:t(?:\\s[^>]*)?>([\\s\\S]*?)<\\/w:t>', 'g');
+  var reMt = new RegExp('<m:t(?:\\s[^>]*)?>([\\s\\S]*?)<\\/m:t>', 'g');
+
+  paras.forEach(function (p) {
+    var parts = [], m;
+    re.lastIndex = 0;
+    while ((m = re.exec(p)) !== null) {
+      var seg = m[0];
+      if (seg.indexOf('<w:tab') === 0 || seg.indexOf('<w:br') === 0 || seg.indexOf('<w:cr') === 0) {
+        parts.push(' ');                       /* 制表/换行 → 空格，避免题干粘连 */
+      } else if (seg.indexOf('<w:t') === 0) {
+        if (m[1] !== undefined) parts.push(unescXml(m[1]));
+      } else if (seg.indexOf('<w:object') === 0) {
+        parts.push('⟨公式⟩');
+      } else if (seg.indexOf('<m:oMath') === 0) {
+        /* OMML：把可见字符抽出来，比只写"公式"有用得多 */
+        var ts = [], m2;
+        reMt.lastIndex = 0;
+        while ((m2 = reMt.exec(seg)) !== null) ts.push(unescXml(m2[1]));
+        parts.push(ts.length ? ('⟨' + ts.join('') + '⟩') : '⟨公式⟩');
+      } else {
+        parts.push(' ');
+      }
+    }
+    var s = parts.join('').replace(/[ \t]+/g, ' ').trim();
+    if (s) lines.push(s);
+  });
+  return lines.join('\n');
+}
+
+/* 统计公式情况，用于给用户提示 */
+function docxFormulaStats(xml) {
+  return {
+    oleObjects: (xml.match(/<w:object\b/g) || []).length,
+    omml: (xml.match(/<m:oMath\b/g) || []).length
+  };
+}
+
+
 /* ===================== 引擎（与本地测试版一致） ===================== */
 /* 干净重写知识点库：32 个知识点，关键词按「专属度」给权重
    权重 3 = 几乎确定属于该知识点（章节题眼/定理名）
@@ -650,8 +792,80 @@ $('#btnResetKw').onclick=function(){
   location.reload();
 };
 
+/* ---- 导入 .docx / .txt ---- */
+var IMPORT_STATS=null;
+(function(){
+  var dz=$('#dropZone'), inp=$('#docxInput');
+  if(!dz||!inp)return;
+  dz.onclick=function(){inp.click()};
+  ['dragover','dragenter'].forEach(function(ev){
+    dz.addEventListener(ev,function(e){e.preventDefault();dz.classList.add('over')});
+  });
+  ['dragleave','drop'].forEach(function(ev){
+    dz.addEventListener(ev,function(e){e.preventDefault();dz.classList.remove('over')});
+  });
+  dz.addEventListener('drop',function(e){
+    var f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];
+    if(f)handleFile(f);
+  });
+  inp.addEventListener('change',function(){
+    if(this.files[0])handleFile(this.files[0]);
+    this.value='';
+  });
+})();
+function docxMsg(html,cls){
+  var b=$('#docxMsg');
+  if(!b)return;
+  b.innerHTML=html?('<div class="'+(cls||'note')+'" style="margin-top:11px">'+html+'</div>'):'';
+}
+function handleFile(f){
+  var name=f.name||'';
+  docxMsg('正在读取 '+esc(name)+' …','note');
+  if(/\.docx$/i.test(name)||/wordprocessingml/.test(f.type||'')){
+    readDocx(f).then(function(text){
+      afterImport(name,text,f);
+    },function(e){
+      docxMsg('<b>读取失败：</b>'+esc(e.message||e)
+        +'<br>如果这是老的 .doc 格式，请先用 Word / WPS 打开，另存为 <b>.docx</b> 再试。','err');
+    });
+  }else if(/\.txt$/i.test(name)||/\.md$/i.test(name)||/^text\//.test(f.type||'')){
+    var fr=new FileReader();
+    fr.onload=function(){ afterImport(name,String(fr.result||''),f) };
+    fr.onerror=function(){ docxMsg('读取失败','err') };
+    fr.readAsText(f,'utf-8');
+  }else{
+    docxMsg('这个格式不支持。请选 <b>.docx</b> 或 <b>.txt</b> 文件。'
+      +'<br>如果是 .pdf，先用「PDF 转 Word」那个工具转成 Word。','err');
+  }
+}
+function afterImport(name,text,f){
+  if(!text||!text.trim()){
+    docxMsg('<b>没读到任何文字。</b>这个文档可能是空的，或者正文全在图片里（扫描件）。','err');
+    return;
+  }
+  var ta=$('#ta');
+  if(ta)ta.value=text;
+  /* 公式统计 */
+  var ole=(text.match(/⟨公式⟩/g)||[]).length;
+  var omml=(text.match(/⟨[^⟩]+⟩/g)||[]).length-ole;
+  var html='<b>✅ 已读取 '+esc(name)+'</b>　'+text.length+' 字<br>';
+  if(ole||omml>0){
+    html+='文档里的公式：';
+    if(omml>0)html+='<b>'+omml+' 个已转成文字</b>（用 ⟨⟩ 标出）';
+    if(ole>0)html+=(omml>0?'；':'')+'<b style="color:var(--rose)">'+ole+' 个是图片/公式对象，读不出来</b>';
+    html+='<br>读不出来的公式在原文里是 WPS / Word 公式编辑器对象，是私有二进制格式，'
+      +'任何网页工具都拿不到。<b>这些位置需要你参照原卷补一下数学式子</b>，补完再分组会更准。';
+    docxMsg(html,ole?'amber':'ok');
+  }else{
+    html+='文档里没有公式对象，可以放心分组。';
+    docxMsg(html,'ok');
+  }
+  toast('已导入，正在分组…','ok');
+  setTimeout(function(){ if($('#btnGo'))$('#btnGo').click() },150);
+}
+
 /* ---- 主流程 ---- */
-$('#btnDemo').onclick=function(){$('#ta').value=DEMO;toast('已填入示例卷子（27 题）','ok')};
+$('#btnDemo').onclick=function(){var ta=$('#ta');if(ta)ta.value=DEMO;var d=document.querySelector('details');if(d)d.open=true;toast('已填入示例卷子（27 题）','ok')};
 $('#btnClear').onclick=function(){$('#ta').value='';$('#statCard').classList.add('hide');$('#inputCard').classList.remove('hide')};
 
 $('#btnGo').onclick=function(){
