@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#7048E8">
+<title>数学题按知识点分组</title>
+<style>
+:root{
+  --pri:#7048E8; --pri-l:#8B6BF0; --pri-soft:#F0EAFF;
+  --teal:#0CA678; --teal-soft:#E3F7F0;
+  --amber:#E8920C; --amber-soft:#FDF3E1;
+  --rose:#E03131; --rose-soft:#FDECEC;
+  --blue:#3B5BDB; --blue-soft:#EDF1FE;
+  --bg:#F5F7FB; --card:#fff; --fg:#182135; --fg2:#3D4966; --muted:#7C89A3; --line:#E8ECF4;
+  --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","HarmonyOS Sans SC","Noto Sans CJK SC","Microsoft YaHei",system-ui,sans-serif;
+  background:var(--bg);color:var(--fg);font-size:16px;line-height:1.7;-webkit-font-smoothing:antialiased;
+  padding:calc(var(--safe-t)) 0 calc(var(--safe-b) + 40px)}
+.wrap{max-width:900px;margin:0 auto;padding:0 15px}
+header{background:linear-gradient(150deg,#8B6BF0 0%,#7048E8 55%,#5F3DC4 100%);color:#fff;
+  padding:calc(var(--safe-t) + 26px) 15px 24px;position:relative;overflow:hidden}
+header::before{content:"";position:absolute;right:-40px;top:-60px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.10)}
+header .in{max-width:900px;margin:0 auto;position:relative}
+header h1{margin:0 0 6px;font-size:23px;font-weight:800;letter-spacing:.3px}
+header p{margin:0;font-size:13.5px;opacity:.93;line-height:1.7}
+header .tag{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);border-radius:999px;
+  padding:4px 12px;font-size:12.5px;font-weight:600;margin-bottom:11px;backdrop-filter:blur(6px)}
+main{padding-top:15px}
+.card{background:var(--card);border-radius:18px;padding:16px;margin-bottom:13px;box-shadow:0 1px 3px rgba(24,33,53,.05),0 6px 18px rgba(24,33,53,.05)}
+.card h2{margin:0 0 11px;font-size:16.5px;font-weight:700;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.card h2 .sub{font-size:12px;color:var(--muted);font-weight:500;margin-left:auto}
+textarea.inp{width:100%;border:1.5px solid var(--line);border-radius:13px;padding:12px;font-size:15px;
+  line-height:1.8;resize:vertical;outline:none;font-family:inherit;-webkit-user-select:text;user-select:text}
+textarea.inp:focus{border-color:var(--pri-l);box-shadow:0 0 0 3.5px rgba(139,107,240,.13)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:12px 17px;border-radius:12px;
+  font-size:14.5px;font-weight:700;background:var(--pri);color:#fff;border:none;cursor:pointer;
+  transition:transform .12s,filter .15s;font-family:inherit}
+.btn:active{transform:scale(.975)}
+.btn:hover{filter:brightness(1.08)}
+.btn.block{width:100%}
+.btn.sm{padding:8px 13px;font-size:13px;border-radius:10px}
+.btn.xs{padding:5px 10px;font-size:12px;border-radius:8px}
+.btn.ghost{background:var(--pri-soft);color:var(--pri)}
+.btn.grey{background:#EFF2F7;color:var(--fg2)}
+.btn.teal{background:var(--teal)}
+.btn.blue{background:var(--blue)}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row>*{flex:1;min-width:112px}
+.stat{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:13px}
+@media(max-width:520px){.stat{grid-template-columns:repeat(2,1fr)}}
+.stat .s{background:var(--card);border-radius:13px;padding:10px 12px;box-shadow:0 1px 3px rgba(24,33,53,.05)}
+.stat .s .k{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stat .s .v{font-size:19px;font-weight:800;line-height:1.3}
+.stat .s .v small{font-size:11px;font-weight:600;color:var(--muted)}
+.seg{display:flex;background:#EAEEF6;border-radius:12px;padding:3px;margin-bottom:12px;gap:2px}
+.seg button{flex:1;padding:8px 4px;border-radius:9px;font-size:13px;font-weight:700;color:var(--muted);
+  background:none;border:none;cursor:pointer;font-family:inherit;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.seg button.on{background:#fff;color:var(--pri);box-shadow:0 1px 4px rgba(24,33,53,.1)}
+.topic{border:1px solid var(--line);border-radius:14px;margin-bottom:10px;overflow:hidden;background:#fff}
+.topic>.th{display:flex;align-items:center;gap:9px;padding:11px 13px;background:#FAFBFD;cursor:pointer}
+.topic>.th .nm{font-size:15px;font-weight:700;flex:1;min-width:0}
+.topic>.th .nm i{font-style:normal;font-size:11.5px;color:var(--muted);font-weight:500;margin-left:5px}
+.topic>.th .cnt{font-size:12.5px;font-weight:800;color:var(--pri);background:var(--pri-soft);border-radius:999px;padding:2px 10px;flex:none}
+.topic>.th .arw{color:var(--muted);font-size:12px;flex:none;transition:transform .2s}
+.topic.open>.th .arw{transform:rotate(90deg)}
+.topic>.tb{display:none;padding:0 13px 12px}
+.topic.open>.tb{display:block}
+.q{padding:11px 0;border-top:.5px solid var(--line)}
+.q:first-child{border-top:none}
+.q .qh{display:flex;align-items:center;gap:7px;margin-bottom:5px;flex-wrap:wrap}
+.q .no{font-size:12px;font-weight:800;color:#fff;background:var(--pri);border-radius:7px;padding:1px 8px;flex:none}
+.q .tagx{font-size:11px;font-weight:700;border-radius:6px;padding:1px 7px;background:#EFF2F7;color:var(--muted)}
+.q .tagx.t{background:var(--blue-soft);color:var(--blue)}
+.q .tagx.u{background:var(--amber-soft);color:var(--amber)}
+.q .tagx.w{background:var(--rose-soft);color:var(--rose)}
+.q .kw{font-size:11px;color:var(--muted);margin-left:auto}
+.q .bd{font-size:14.5px;line-height:1.85;white-space:pre-wrap;word-break:break-word}
+.q .bd em{font-style:normal;background:#FFF3BF;border-radius:3px;padding:0 2px}
+.q .ops{margin-top:7px;display:flex;gap:6px;flex-wrap:wrap}
+.q .alt{font-size:11.5px;color:var(--muted);margin-top:5px}
+.note{background:var(--blue-soft);border-left:3px solid var(--blue);border-radius:0 10px 10px 0;padding:10px 13px;font-size:13.5px;color:var(--fg2);line-height:1.7;margin-top:11px}
+.ok{background:var(--teal-soft);border-left:3px solid var(--teal);border-radius:0 10px 10px 0;padding:10px 13px;font-size:13.5px;color:#0A5C45;line-height:1.75;margin-top:11px}
+.amber{background:var(--amber-soft);border-left:3px solid var(--amber);border-radius:0 10px 10px 0;padding:10px 13px;font-size:13.5px;color:#7A4A00;line-height:1.75;margin-top:11px}
+.err{background:var(--rose-soft);border-left:3px solid var(--rose);border-radius:0 10px 10px 0;padding:10px 13px;font-size:13.5px;color:#8A1F1F;line-height:1.75;margin-top:11px}
+ul{margin:7px 0 0;padding-left:20px}
+li{font-size:13.5px;color:var(--fg2);line-height:1.8;margin-bottom:3px}
+.kv{display:flex;gap:10px;padding:7px 0;border-bottom:.5px solid var(--line);font-size:13.5px}
+.kv:last-child{border-bottom:none}
+.kv .k{flex:none;width:100px;color:var(--muted);font-size:12.5px}
+.kv .v{flex:1;min-width:0}
+code{background:#F0F3F9;border-radius:5px;padding:1px 6px;font-size:13px;font-family:ui-monospace,Menlo,Consolas,monospace;color:var(--pri)}
+.kwedit{display:grid;grid-template-columns:1fr auto auto;gap:7px;align-items:center;padding:6px 0;border-bottom:.5px solid var(--line);font-size:13.5px}
+.kwedit:last-child{border-bottom:none}
+.kwedit .nm{font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+input.mini{border:1.5px solid var(--line);border-radius:9px;padding:7px 9px;font-size:13.5px;outline:none;font-family:inherit;width:100%}
+input.mini:focus{border-color:var(--pri-l)}
+.hide{display:none!important}
+#toastbox{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:300;display:flex;flex-direction:column;gap:7px;align-items:center;pointer-events:none;width:max-content;max-width:88vw}
+.tst{background:rgba(23,32,50,.94);color:#fff;padding:10px 17px;border-radius:13px;font-size:13.5px;font-weight:600;
+  box-shadow:0 10px 30px rgba(24,33,53,.25);animation:tin .22s;max-width:88vw;text-align:center;line-height:1.5}
+@keyframes tin{from{opacity:0;transform:translateY(12px) scale(.95)}to{opacity:1;transform:none}}
+.tst.ok{background:rgba(12,166,120,.96)}.tst.err{background:rgba(224,49,49,.96)}.tst.warn{background:rgba(232,146,12,.96)}
+</style>
+</head>
+<body>
+
+<header><div class="in">
+  <div class="tag">🔒 本地处理 · 不上传 · 可自己改知识点库</div>
+  <h1>数学题按知识点分组</h1>
+  <p>把一份卷子或一堆题目粘进来，自动按知识点归类，方便做专题复习、错题重练、分层作业。</p>
+</div></header>
+
+<main class="wrap">
+
+  <div class="card" id="inputCard">
+    <h2>① 粘贴题目 <span class="sub">整份卷子直接贴</span></h2>
+    <textarea class="inp" id="ta" rows="9" placeholder="把卷子内容粘到这里，例如：&#10;1．下列各数中，是无理数的是（  ）&#10;A．0.5  B．√2  C．22/7  D．3.14&#10;2．解方程：2x＋5＝17&#10;..."></textarea>
+    <div class="row" style="margin-top:11px">
+      <button class="btn" id="btnGo">开始分组</button>
+      <button class="btn grey" id="btnDemo">填入示例卷子</button>
+      <button class="btn grey" id="btnClear">清空</button>
+    </div>
+    <div class="note">
+      <b>识别规则：</b>以「<code>1.</code> <code>2、</code> <code>（3）</code> <code>例1</code> <code>习题2</code>」开头的行会被当作新题目的开始。
+      选项行（<code>A.</code> <code>B.</code>）会并入上一题。整份卷子直接粘进来就行，不用先整理。
+    </div>
+    <div class="amber">
+      <b>关于准确率，先说清楚：</b>这是<b>关键词规则匹配</b>，不是人工智能。它认识的是题目里出现的字词——比如看到「二次函数」「抛物线」「顶点」就归到二次函数。
+      所以：
+      <ul>
+        <li>题目里<b>关键字词越明确</b>，判得越准（「求二次函数 y=x²-4x+3 的顶点坐标」→ 准）</li>
+        <li>题目<b>绕弯说</b>可能判不准（「某商品两次降价求百分率」→ 需要你手动调）</li>
+        <li>每题都会标出<b>命中了哪些关键词</b>，方便你核对；拿不准的会标出来让你手动改</li>
+        <li>你可以<b>自己增删关键词</b>（页面底部），用得越久越贴合你的教材和用法</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card hide" id="statCard">
+    <h2>识别结果</h2>
+    <div class="stat" id="statBox"></div>
+    <div class="seg" id="viewSeg">
+      <button data-v="group" class="on">按知识点分组</button>
+      <button data-v="list">题目清单</button>
+      <button data-v="check">需核对</button>
+    </div>
+    <div class="row" style="margin-bottom:12px">
+      <button class="btn teal sm" id="btnDoc">⬇ 导出 Word</button>
+      <button class="btn ghost sm" id="btnCsv">⬇ 导出表格</button>
+      <button class="btn grey sm" id="btnCopy">📋 复制分组文本</button>
+    </div>
+    <div id="out"></div>
+  </div>
+
+  <div class="card">
+    <h2>② 想调得更准？改知识点库</h2>
+    <p style="margin:0 0 9px;font-size:14px;color:var(--fg2)">下面是每个知识点对应的<b>关键词</b>。命中越"专属"的词，判断越肯定。你可以按自己教材的说法增删。</p>
+    <div id="kwList"></div>
+    <div class="note">改完会自动保存在本机浏览器里。想恢复默认，点下面的按钮。</div>
+    <button class="btn grey sm" id="btnResetKw" style="margin-top:10px">恢复默认知识点库</button>
+  </div>
+
+  <div class="card">
+    <h2>💡 怎么用这个结果</h2>
+    <div class="kv"><div class="k">做专题复习</div><div class="v">看哪个知识点题最多 → 导出 Word → 就是一份现成的专题训练卷。</div></div>
+    <div class="kv"><div class="k">找薄弱点</div><div class="v">「需核对」里如果有大量题集中在某一类，说明那一类题目表述多变，学生也容易懵。</div></div>
+    <div class="kv"><div class="k">错题重练</div><div class="v">把错题本里的题粘进来分组，同一知识点的放一起集中突破。</div></div>
+    <div class="kv"><div class="k">分层作业</div><div class="v">基础知识点（有理数、整式）给 C 层，综合应用给 A 层，按分组直接挑题。</div></div>
+    <div class="kv"><div class="k">组卷检查</div><div class="v">出完卷子粘进来看看知识点覆盖是否均衡，有没有重复考同一个点。</div></div>
+    <div class="note"><b>提示：</b>分组结果是<b>草稿</b>，不是最终答案。建议扫一眼「需核对」，把判错的拖到正确类别（点题目下方的「换个类别」），然后再导出。</div>
+  </div>
+
+</main>
+
+<div id="toastbox"></div>
+
+<script>
+/* ===================== 引擎（与本地测试版一致） ===================== */
+/* 知识点归类引擎：权重打分 + 题型判别
+   设计原则：
+   1) 知识点按教材章节组织，教师熟悉、可自行增删
+   2) 匹配用「权重」而不是简单包含：题名关键词权重高，通用词权重低
+   3) 每道题都知道自己为什么被归到这一类（记录命中词），便于教师核对和纠正
+   4) 低置信度的题单独列出来，不硬塞进某个类别
+*/
+
+/* ============ 知识点库 ============ */
+/* kw: [关键词, 权重]  权重 3=几乎确定  2=强指示  1=弱指示 */
+const TOPICS = [
+  {id:'rational', grade:'七上', name:'有理数', kw:[
+    ['有理数',3],['相反数',3],['绝对值',2],['数轴',3],['倒数',2],['科学记数法',3],
+    ['正数',1],['负数',1],['有理数的',3],['乘方',2],['近似数',2],['有效数字',2],
+    ['|',1],['绝对值',3],['数轴上的点',2],['比大小',2]
+  ]},
+  {id:'algebra-add', grade:'七上', name:'整式的加减', kw:[
+    ['整式',3],['单项式',3],['多项式',3],['同类项',3],['合并同类项',3],['去括号',3],
+    ['系数',2],['次数',1],['升幂',2],['降幂',2],['添括号',3]
+  ]},
+  {id:'eq-linear1', grade:'七上', name:'一元一次方程', kw:[
+    ['一元一次方程',3],['解方程',2],['方程的解',2],['移项',3],['列方程',3],
+    ['去分母',2],['打折',1],['利润',2],['行程问题',2],['工程问题',2],['配套',1],
+    ['求这个百分率',3],['进价',2],['售价',2],['求甲',2],['购进',2],['平均增长率',2]
+  ]},
+  {id:'geom-basic', grade:'七上', name:'几何图形初步', kw:[
+    ['直线',1],['射线',2],['线段',2],['中点',3],['角平分线',3],['余角',3],['补角',3],
+    ['对顶角',3],['同位角',2],['展开图',3],['三视图',3],['度分秒',2],['正方体',1],['棱柱',2]
+  ]},
+  {id:'parallel', grade:'七下', name:'相交线与平行线', kw:[
+    ['平行线',3],['平行',2],['内错角',3],['同旁内角',3],['垂线',3],['垂足',3],
+    ['点到直线的距离',3],['平移',2],['命题',2],['真命题',3],['定理',1],['证明',1]
+  ]},
+  {id:'real', grade:'七下', name:'实数', kw:[
+    ['实数',3],['平方根',3],['算术平方根',3],['立方根',3],['无理数',3],['开方',2],
+    ['根号',2],['√',2],['估算',1],['实数与数轴',3]
+  ]},
+  {id:'coord', grade:'七下', name:'平面直角坐标系', kw:[
+    ['平面直角坐标系',3],['坐标系',3],['象限',3],['横坐标',3],['纵坐标',3],
+    ['有序数对',3],['坐标',2],['用坐标表示平移',3]
+  ]},
+  {id:'eq-linear2', grade:'七下', name:'二元一次方程组', kw:[
+    ['二元一次方程组',3],['二元一次方程',3],['代入消元',3],['加减消元',3],['消元',3],
+    ['鸡兔同笼',3],['两个未知数',2],['方程组',3],['解方程组',3],['x＋y',2],['设两个',2]
+  ]},
+  {id:'ineq', grade:'七下', name:'不等式与不等式组', kw:[
+    ['不等式组',3],['不等式',3],['解集',3],['数轴上表示',2],['大小关系',1],['≥',1],['≤',1],['不少于',2],['不超过',2],['至少',1],['至多',1]
+  ]},
+  {id:'stat-basic', grade:'七下', name:'数据的收集整理与描述', kw:[
+    ['全面调查',3],['抽样调查',3],['样本',2],['总体',1],['个体',1],['频数',3],
+    ['频率',3],['直方图',3],['扇形统计图',3],['条形统计图',3],['折线统计图',3],['统计图',2]
+  ]},
+  {id:'triangle', grade:'八上', name:'三角形', kw:[
+    ['三角形',2],['内角和',3],['外角',3],['三边关系',3],['中线',3],['高线',2],['重心',3],
+    ['等腰三角形',3],['等边三角形',3],['多边形',3],['正多边形',3],['n边形',3],['外交和',2]
+  ]},
+  {id:'congruent', grade:'八上', name:'全等三角形', kw:[
+    ['全等三角形',3],['全等',3],['SSS',3],['SAS',3],['ASA',3],['AAS',3],['HL',3],
+    ['对应边',3],['对应角',3],['角平分线的性质',3],['垂直平分线',3],
+    ['求证',2],['证明',2],['∠B＝∠C',3],['等腰',2],['等腰三角形',2]
+  ]},
+  {id:'symmetry', grade:'八上', name:'轴对称', kw:[
+    ['轴对称',3],['对称轴',3],['垂直平分线',3],['等腰三角形的性质',3],['等边三角形',2],['最短路径',2],['将军饮马',3],['镜面',2]
+  ]},
+  {id:'factor', grade:'八上', name:'整式的乘法与因式分解', kw:[
+    ['因式分解',3],['提公因式',3],['公式法',3],['平方差',3],['完全平方',3],
+    ['幂的运算',3],['同底数幂',3],['积的乘方',3],['单项式乘',3],['多项式乘',3],['十字相乘',3],['分组分解',3],
+    ['运算正确的是',3],['下列运算',3],['幂',2],['a²·a',3],['(a²)³',3]
+  ]},
+  {id:'fraction', grade:'八上', name:'分式', kw:[
+    ['分式',3],['最简公分母',3],['分式方程',3],['增根',3],['约分',2],['通分',2],
+    ['分式的',3],['分母',1],['值为零',2]
+  ]},
+  {id:'radical', grade:'八下', name:'二次根式', kw:[
+    ['二次根式',3],['最简二次根式',3],['被开方数',3],['分母有理化',3],['同类二次根式',3],['根号',2],['√',2],['有意义',2],['取值范围',2]
+  ]},
+  {id:'pythagorean', grade:'八下', name:'勾股定理', kw:[
+    ['勾股定理',3],['勾股',3],['斜边',3],['直角边',3],['勾股数',3],['赵爽',2],['直角三角形',2]
+  ]},
+  {id:'parallelogram', grade:'八下', name:'平行四边形', kw:[
+    ['平行四边形',3],['矩形',3],['菱形',3],['正方形',2],['对角线',2],['中位线',3],
+    ['梯形',3],['邻边',2],['对角线互相',3]
+  ]},
+  {id:'func-linear', grade:'八下', name:'一次函数', kw:[
+    ['一次函数',3],['正比例函数',3],['y=kx',3],['y = kx',3],['斜率',2],['截距',2],
+    ['函数图象',2],['自变量',2],['待定系数法',3],['函数解析式',2],['k>0',2],['k<0',2],['函数值',2],['与x轴的交点',3],['与y轴的交点',3],['求它与',2]
+  ]},
+  {id:'stat-analysis', grade:'八下', name:'数据的分析', kw:[
+    ['平均数',3],['加权平均数',3],['中位数',3],['众数',3],['方差',3],['标准差',2],
+    ['极差',3],['波动',2],['稳定性',2],['算术平均数',3]
+  ]},
+  {id:'eq-quadratic', grade:'九上', name:'一元二次方程', kw:[
+    ['一元二次方程',3],['配方法',3],['公式法',2],['因式分解法',3],['判别式',3],
+    ['Δ',2],['两根',2],['韦达定理',3],['根与系数',3],['x²',3],['增长率',3],['降价率',3],
+    ['不相等的实数根',3],['实数根',3],['平均降价',3],['百分率相同',3],['面积增加',2]
+  ]},
+  {id:'func-quadratic', grade:'九上', name:'二次函数', kw:[
+    ['二次函数',3],['抛物线',3],['顶点',3],['对称轴',3],['开口方向',3],['y=ax²',3],
+    ['y = ax',3],['最值',2],['顶点式',3],['交点式',3],['二次函数的',3],['与x轴交',3],['最大值',1],['最小值',1]
+  ]},
+  {id:'rotate', grade:'九上', name:'旋转', kw:[
+    ['旋转',3],['中心对称',3],['旋转角',3],['对应点到旋转中心',3],['中心对称图形',3],['旋转180',3]
+  ]},
+  {id:'circle', grade:'九上', name:'圆', kw:[
+    ['圆',1],['半径',2],['直径',3],['弦',3],['圆心角',3],['圆周角',3],['弧',2],['⊙',3],
+    ['切线',3],['切点',3],['割线',3],['垂径定理',3],['内切圆',3],['外接圆',3],
+    ['扇形',3],['弧长',3],['圆锥',3],['侧面积',2],['正多边形与圆',3],['同弧',3]
+  ]},
+  {id:'prob', grade:'九上', name:'概率初步', kw:[
+    ['概率',3],['随机事件',3],['必然事件',3],['不可能事件',3],['树状图',3],['列表法',3],
+    ['等可能',3],['摸球',2],['掷骰子',2],['抽签',2],['转盘',2]
+  ]},
+  {id:'func-inverse', grade:'九下', name:'反比例函数', kw:[
+    ['反比例函数',3],['y=k/x',3],['y = k/x',3],['双曲线',3],['反比例',3],['k的几何意义',3],
+    ['乘积一定',3],['成反比例',3],['反比',3],['函数关系式',2],['所用时间',1],['写出',1]
+  ]},
+  {id:'similar', grade:'九下', name:'相似', kw:[
+    ['相似三角形',3],['相似',3],['相似比',3],['位似',3],['平行线分线段成比例',3],
+    ['黄金分割',3],['成比例线段',3],['对应边成比例',3]
+  ]},
+  {id:'trig', grade:'九下', name:'锐角三角函数', kw:[
+    ['锐角三角函数',3],['正弦',3],['余弦',3],['正切',3],['sin',3],['cos',3],['tan',3],
+    ['仰角',3],['俯角',3],['坡度',3],['坡角',3],['解直角三角形',3],['三角函数',3]
+  ]},
+  {id:'projection', grade:'九下', name:'投影与视图', kw:[
+    ['投影',3],['三视图',3],['正投影',3],['主视图',3],['左视图',3],['俯视图',3],['平行投影',3],['中心投影',3]
+  ]},
+  {id:'comprehensive', grade:'综合', name:'综合应用（跨知识点）', kw:[
+    ['动点',3],['探究',2],['阅读材料',3],['新定义',3],['综合运用',3],['类比',2],['拓展',2],['实际应用',2],['方案设计',2],['最优化',2]
+  ]}
+];
+
+/* 题型识别 */
+const TYPE_PATTERNS = [
+  {t:'选择', re:/(单项选择|多项选择|选择题|选出|下列.*的是|正确的是|错误的是)/},
+  {t:'填空', re:/(填空题|填一填|横线上|________|____)/},
+  {t:'解答', re:/(解答题|计算题|解方程|解不等式|证明|求证|化简|求.*的值|解答)/},
+  {t:'作图', re:/(作图|画图|尺规|保留作图痕迹|画出)/},
+  {t:'应用', re:/(实际问题|应用题|销售|利润|方案|租用|设计)/}
+];
+
+/* 去掉题目前面的编号，例： "1." "1、" "（1）" "例3" "第5题" */
+function stripNo(s){
+  return String(s).replace(/^\s*(?:第\s*\d+\s*题|例\s*\d+|习题\s*\d+|练习\s*\d+|\d+\s*[．.、)）]|[（(]\s*\d+\s*[)）])\s*/,'').trim();
+}
+function qNo(s){
+  const m=String(s).match(/^\s*(?:第\s*(\d+)\s*题|例\s*(\d+)|习题\s*(\d+)|练习\s*(\d+)|(\d+)\s*[．.、)）]|[（(]\s*(\d+)\s*[)）])/);
+  if(!m)return '';
+  return m[1]||m[2]||m[3]||m[4]||m[5]||m[6]||'';
+}
+
+/* 把一整段文本切成题目 */
+function splitQuestions(text){
+  let t=String(text).replace(/\r\n?/g,'\n');
+  /* 把挤在一行的题号拆开：在 "数字." 或 "数字、" 前插入换行（避免误伤小数和日期） */
+  t=t.replace(/([。；;？?）)\]】])\s*(?=\d{1,3}\s*[．.、]\s*\S)/g,'$1\n');
+  t=t.replace(/\n\s*(?=\d{1,3}\s*[．.、]\s*\S)/g,'\n');
+  /* 例/习题/练习 开头也换行 */
+  t=t.replace(/(?<!^)\s*(?=(?:例|习题|练习)\s*\d+)/g,'\n');
+  const lines=t.split('\n').map(s=>s.trim()).filter(Boolean);
+  const out=[];let cur=null;
+  lines.forEach(function(L){
+    const isStart=/^(?:第\s*\d+\s*题|例\s*\d+|习题\s*\d+|练习\s*\d+|\d{1,3}\s*[．.、)）]|[（(]\s*\d+\s*[)）])/.test(L);
+    /* 选项行（A. B. C. D.）不算新题开头 */
+    const isOpt=/^[ABCD][．.、)）]/.test(L);
+    if(isStart&&!isOpt){
+      if(cur&&cur.body.trim())out.push(cur);
+      cur={no:qNo(L),body:stripNo(L)};
+    }else{
+      if(!cur)cur={no:'',body:''};
+      cur.body+=(cur.body?' ':'')+L;
+    }
+  });
+  if(cur&&cur.body.trim())out.push(cur);
+  /* 过滤掉明显的非题目行（标题、说明） */
+  return out.filter(function(q){
+    if(q.body.length<6)return false;
+    if(/^(一|二|三|四|五|六|七|八|九|十)[、.]/.test(q.body))return false;
+    if(/^(选择题|填空题|解答题|计算题|注意事项|考试时间|姓名|班级|得分|第[一二]卷)/.test(q.body))return false;
+    return true;
+  });
+}
+
+/* 知识点打分 */
+function scoreQuestion(body){
+  const scores={};
+  const hits=[];
+  TOPICS.forEach(function(tp){
+    let s=0;
+    tp.kw.forEach(function(pair){
+      const w=pair[0],weight=pair[1];
+      if(body.indexOf(w)>=0){ s+=weight; hits.push({topic:tp.id,kw:w,w:weight}) }
+    });
+    if(s>0)scores[tp.id]=s;
+  });
+  return {scores:scores,hits:hits};
+}
+
+function classify(body){
+  const r=scoreQuestion(body);
+  const arr=Object.keys(r.scores).map(function(id){return {id:id,score:r.scores[id]}})
+    .sort(function(a,b){return b.score-a.score});
+  if(!arr.length)return {topic:null,score:0,kws:[],alts:[],conf:'none'};
+  const top=arr[0];
+  const second=arr[1];
+  const gap=second?(top.score-second.score):999;
+  let conf='high';
+  if(second&&gap<=1&&second.score>=2)conf='unsure';   /* 两个知识点分数咬得紧 → 有歧义 */
+  else if(top.score<3)conf='weak';                     /* 只命中弱词 → 依据偏弱，但方向不矛盾 */
+  const tp=TOPICS.filter(function(x){return x.id===top.id})[0];
+  const kws=r.hits.filter(function(h){return h.topic===top.id}).map(function(h){return h.kw});
+  return {
+    topic:top.id, name:tp.name, grade:tp.grade, score:top.score, kws:kws, conf:conf,
+    alts:arr.slice(1,3).map(function(a){
+      const t2=TOPICS.filter(function(x){return x.id===a.id})[0];
+      return {id:a.id,name:t2.name,score:a.score};
+    })
+  };
+}
+
+function detectType(body){
+  for(const p of TYPE_PATTERNS){ if(p.re.test(body))return p.t }
+  if(/[ABCD][．.、][^ABCD]{1,40}[ABCD][．.、]/.test(body))return '选择';
+  return '解答';
+}
+
+/* 完整分析 */
+function analyze(text){
+  const qs=splitQuestions(text);
+  const rows=qs.map(function(q,i){
+    const c=classify(q.body);
+    return {
+      idx:i+1, no:q.no, body:q.body, len:q.body.length,
+      type:detectType(q.body),
+      topic:c.topic, topicName:c.name||'', grade:c.grade||'',
+      score:c.score, kws:c.kws, conf:c.conf, alts:c.alts||[]
+    };
+  });
+  /* 汇总 */
+  const byTopic={};
+  rows.forEach(function(r){
+    const key=r.topic||'__none__';
+    byTopic[key]=byTopic[key]||{id:key,name:r.topicName||'未识别',grade:r.grade||'',items:[]};
+    byTopic[key].items.push(r);
+  });
+  const groups=Object.keys(byTopic).map(function(k){
+    const g=byTopic[k];
+    const confs=g.items.map(function(x){return x.conf});
+    return {
+      id:g.id,name:g.name,grade:g.grade,count:g.items.length,items:g.items,
+      unsureCount:confs.filter(function(c){return c==='unsure'}).length,
+      weakCount:confs.filter(function(c){return c==='weak'}).length
+    };
+  }).sort(function(a,b){
+    if(a.id==='__none__')return 1;
+    if(b.id==='__none__')return -1;
+    return b.count-a.count;
+  });
+  const stats={
+    total:rows.length,
+    classified:rows.filter(function(r){return r.topic}).length,
+    unclassified:rows.filter(function(r){return !r.topic}).length,
+    unsure:rows.filter(function(r){return r.conf==='unsure'}).length,
+    weak:rows.filter(function(r){return r.conf==='weak'}).length,
+    needCheck:rows.filter(function(r){return r.conf==='unsure'||r.conf==='weak'}).length,
+    topicsHit:groups.filter(function(g){return g.id!=='__none__'}).length,
+    topicsMissed:TOPICS.length-groups.filter(function(g){return g.id!=='__none__'}).length,
+    totalTopics:TOPICS.length
+  };
+  return {rows:rows,groups:groups,stats:stats};
+}
+
+/* ===================== 界面 ===================== */
+var $=function(s,r){return (r||document).querySelector(s)};
+var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function toast(msg,type){
+  var b=$('#toastbox'),el=document.createElement('div');
+  el.className='tst '+(type||'');el.textContent=msg;b.appendChild(el);
+  setTimeout(function(){el.style.transition='opacity .28s';el.style.opacity='0';setTimeout(function(){el.remove()},300)},2300);
+}
+function download(name,content,mime){
+  var blob=new Blob([content],{type:mime});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;
+  document.body.appendChild(a);a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},1500);
+}
+
+var R=null;              /* analyze 结果 */
+var VIEW='group';
+var OVERRIDE={};         /* idx -> topicId 手动改过的 */
+
+/* ---- 示例卷子 ---- */
+var DEMO=`一、选择题
+1．下列各数中，是无理数的是（  ）
+A．0.5    B．√2    C．22/7    D．3.14
+2．若 a＞b，则下列不等式一定成立的是（  ）
+A．a－3＞b－3    B．－2a＞－2b    C．a/2＜b/2    D．a²＞b²
+3．下列运算正确的是（  ）
+A．a²·a³＝a⁶    B．(a²)³＝a⁵    C．a⁶÷a²＝a⁴    D．a²＋a³＝a⁵
+4．在平面直角坐标系中，点 P(－2，3) 所在的象限是（  ）
+A．第一象限    B．第二象限    C．第三象限    D．第四象限
+5．若一组数据 3，4，4，6，8 的众数和中位数分别是（  ）
+A．4 和 6    B．4 和 4    C．6 和 4    D．8 和 4
+二、填空题
+6．计算：|－5| ＝ ________。
+7．若 |x－2|＝5，则 x ＝ ________。
+8．已知一个多边形的内角和为 1080°，则这个多边形的边数是 ________。
+9．分解因式：x²－4y² ＝ ________。
+10．若关于 x 的方程 x²－2x＋m＝0 有两个不相等的实数根，则 m 的取值范围是 ________。
+11．已知反比例函数 y＝k/x 的图象经过点 (2，3)，则 k ＝ ________。
+12．在 Rt△ABC 中，∠C＝90°，AB＝10，BC＝6，则 sin A ＝ ________。
+三、解答题
+13．解方程：2x＋5＝17
+14．解不等式组，并把解集在数轴上表示出来：{ 2x－1＞3，x－2≤0 }
+15．解方程组：{ x＋y＝7，2x－y＝5 }
+16．先化简，再求值：(1/(x－1) － 1/(x＋1)) ÷ 2/(x²－1)，其中 x＝3。
+17．如图，在△ABC 中，AB＝AC，求证：∠B＝∠C。
+18．已知一次函数 y＝2x＋1，求它与 x 轴的交点坐标。
+19．求二次函数 y＝x²－4x＋3 的顶点坐标和对称轴。
+20．某商店购进甲、乙两种商品，甲每件进价 30 元，售价 45 元；乙每件进价 40 元，售价 60 元。若共购进 100 件，全部售出后利润为 1900 元，求甲、乙各购进多少件。
+21．如图，AB 是⊙O 的直径，弦 CD⊥AB 于点 E，求证：CE＝DE。
+22．已知二次函数 y＝ax²＋bx＋c 的图象与 x 轴交于 A(－1,0)、B(3,0) 两点，与 y 轴交于点 C(0,－3)。求这个二次函数的解析式。
+23．从一副扑克牌中随机抽取一张，求抽到红桃的概率。
+24．某数学兴趣小组测量一座楼的高度。在点 A 处测得楼顶的仰角为 30°，前进 20 米到点 B，测得仰角为 45°，求楼高。
+25．在正方形 ABCD 中，E 为 BC 边上一点，将△ABE 绕点 B 顺时针旋转 90° 得到△CBF，探究 AE 与 EF 的数量关系并证明。
+26．某种商品原价 200 元，经过两次降价后售价为 128 元，若每次降价的百分率相同，求这个百分率。
+27．设跑步速度为 v 米/秒，所用时间为 t 秒，跑 1000 米，写出 t 与 v 的函数关系式。`;
+
+/* ---- 关键词库持久化 ---- */
+var KW_KEY='math-topics-kw-v1';
+function loadKw(){
+  try{
+    var raw=localStorage.getItem(KW_KEY);
+    if(!raw)return;
+    var saved=JSON.parse(raw);
+    TOPICS.forEach(function(tp){
+      if(saved[tp.id])tp.kw=saved[tp.id];
+    });
+  }catch(e){}
+}
+function saveKw(){
+  try{
+    var o={};
+    TOPICS.forEach(function(tp){o[tp.id]=tp.kw});
+    localStorage.setItem(KW_KEY,JSON.stringify(o));
+  }catch(e){}
+}
+loadKw();
+
+/* ---- 关键词编辑界面 ---- */
+function paintKw(){
+  $('#kwList').innerHTML=TOPICS.map(function(tp){
+    var s=tp.kw.map(function(p){return p[0]}).join('、');
+    return '<div class="kwedit"><span class="nm">'+esc(tp.name)+
+      ' <span style="font-weight:400;color:var(--muted);font-size:12px">'+esc(tp.grade)+'</span></span>'
+      +'<button class="btn grey xs" data-edit="'+tp.id+'">编辑</button>'
+      +'<span style="font-size:12px;color:var(--muted);min-width:36px;text-align:right">'+tp.kw.length+'词</span></div>'
+      +'<div class="hide" data-box="'+tp.id+'" style="padding:9px 0 13px">'
+      +'<div style="font-size:12.5px;color:var(--muted);margin-bottom:6px">用「、」或逗号分隔。命中「专属词」判断最准。</div>'
+      +'<input class="mini" data-inp="'+tp.id+'" value="'+esc(s)+'">'
+      +'</div>';
+  }).join('');
+  $$('#kwList [data-edit]').forEach(function(b){
+    b.onclick=function(){
+      var id=b.getAttribute('data-edit');
+      var box=$('#kwList [data-box="'+id+'"]');
+      var open=!box.classList.contains('hide');
+      if(open){
+        box.classList.add('hide');b.textContent='编辑';
+      }else{
+        box.classList.remove('hide');b.textContent='收起';
+        var inp=$('#kwList [data-inp="'+id+'"]');
+        inp.focus();
+        inp.onchange=function(){
+          var tp=TOPICS.filter(function(x){return x.id===id})[0];
+          tp.kw=inp.value.split(/[、,，\s]+/).map(function(s2){return s2.trim()}).filter(Boolean)
+            .map(function(w){
+              /* 保留原有权重；新词默认权重 2 */
+              var old=null;
+              tp.kw.forEach(function(p){if(p[0]===w)old=p});
+              return old||[w,2];
+            });
+          saveKw();paintKw();
+          toast('已保存「'+tp.name+'」的 '+tp.kw.length+' 个关键词','ok');
+        };
+      }
+    };
+  });
+}
+paintKw();
+
+$('#btnResetKw').onclick=function(){
+  try{localStorage.removeItem(KW_KEY)}catch(e){}
+  location.reload();
+};
+
+/* ---- 主流程 ---- */
+$('#btnDemo').onclick=function(){$('#ta').value=DEMO;toast('已填入示例卷子（27 题）','ok')};
+$('#btnClear').onclick=function(){$('#ta').value='';$('#statCard').classList.add('hide');$('#inputCard').classList.remove('hide')};
+
+$('#btnGo').onclick=function(){
+  var text=$('#ta').value;
+  if(!text||text.trim().length<10){toast('请先粘贴题目内容','err');return}
+  OVERRIDE={};
+  R=analyze(text);
+  if(!R.rows.length){toast('没识别到题目。每道题要用「1.」「2、」「（3）」这样的编号开头','err');return}
+  $('#statCard').classList.remove('hide');
+  paintStats();paintOut();
+  toast('识别完成：'+R.rows.length+' 题 · '+R.stats.topicsHit+' 个知识点','ok');
+  $('#statCard').scrollIntoView({behavior:'smooth',block:'start'});
+};
+
+function effTopic(r){
+  return OVERRIDE[r.idx]||r.topic||'__none__';
+}
+function effName(r){
+  var id=effTopic(r);
+  if(id==='__none__')return '未识别';
+  var tp=TOPICS.filter(function(x){return x.id===id})[0];
+  return tp?tp.name:'未识别';
+}
+
+function paintStats(){
+  var rows=R.rows;
+  var uniq={};
+  rows.forEach(function(r){uniq[effTopic(r)]=1});
+  var nTopic=Object.keys(uniq).filter(function(k){return k!=='__none__'}).length;
+  var unsure=rows.filter(function(r){return r.conf==='unsure'}).length;
+  var weak=rows.filter(function(r){return r.conf==='weak'}).length;
+  $('#statBox').innerHTML=
+    '<div class="s"><div class="k">题目总数</div><div class="v">'+rows.length+'<small> 题</small></div></div>'
+   +'<div class="s"><div class="k">涉及知识点</div><div class="v" style="color:var(--pri)">'+nTopic+'<small> 个</small></div></div>'
+   +'<div class="s"><div class="k">需核对</div><div class="v" style="color:'+(unsure+weak?'var(--amber)':'var(--teal)')+'">'+(unsure+weak)+'<small> 题</small></div><div class="k" style="margin-top:2px">有歧义 '+unsure+' · 依据弱 '+weak+'</div></div>'
+   +'<div class="s"><div class="k">知识点库</div><div class="v" style="font-size:15px">'+R.stats.topicsHit+'<small> / '+R.stats.totalTopics+'</small></div><div class="k" style="margin-top:2px">命中 / 全部</div></div>';
+}
+
+$$('#viewSeg button').forEach(function(b){
+  b.onclick=function(){
+    VIEW=b.getAttribute('data-v');
+    $$('#viewSeg button').forEach(function(x){x.classList.toggle('on',x===b)});
+    paintOut();
+  };
+});
+
+function hl(body,kws){
+  var h=esc(body);
+  (kws||[]).slice().sort(function(a,b){return b.length-a.length}).forEach(function(k){
+    if(!k)return;
+    var ek=esc(k);
+    if(ek.length<1)return;
+    h=h.split(ek).join('<em>'+ek+'</em>');
+  });
+  return h;
+}
+function confTag(c){
+  if(c==='unsure')return '<span class="tagx u">有歧义</span>';
+  if(c==='weak')return '<span class="tagx w">依据弱</span>';
+  return '';
+}
+function qBlock(r){
+  var id=effTopic(r);
+  var changed=!!OVERRIDE[r.idx];
+  var ops='<button class="btn grey xs" data-move="'+r.idx+'">换个类别</button>'
+    +(changed?'<button class="btn grey xs" data-undo="'+r.idx+'">恢复自动判断</button>':'');
+  return '<div class="q" data-q="'+r.idx+'">'
+    +'<div class="qh"><span class="no">'+(r.no||r.idx)+'</span>'
+    +'<span class="tagx t">'+esc(r.type)+'</span>'
+    +confTag(r.conf)
+    +(changed?'<span class="tagx" style="background:var(--pri-soft);color:var(--pri)">已手改</span>':'')
+    +'<span class="kw">'+(r.kws&&r.kws.length?('命中：'+esc(r.kws.slice(0,5).join('、'))):'无命中词')+'</span></div>'
+    +'<div class="bd">'+hl(r.body,r.kws)+'</div>'
+    +(r.alts&&r.alts.length?'<div class="alt">也可能是：'+r.alts.map(function(a){return esc(a.name)+'（'+a.score+'）'}).join('　')+'</div>':'')
+    +'<div class="ops">'+ops+'</div></div>';
+}
+function bindQ(box){
+  $$('[data-move]',box).forEach(function(b){
+    b.onclick=function(){ moveDialog(+b.getAttribute('data-move')) };
+  });
+  $$('[data-undo]',box).forEach(function(b){
+    b.onclick=function(){ delete OVERRIDE[+b.getAttribute('data-undo')]; paintStats(); paintOut(); toast('已恢复自动判断','ok') };
+  });
+}
+function moveDialog(idx){
+  var r=R.rows.filter(function(x){return x.idx===idx})[0];if(!r)return;
+  var cur=effTopic(r);
+  var used={};R.rows.forEach(function(x){used[effTopic(x)]=1});
+  var list=TOPICS.slice().sort(function(a,b){
+    var ua=used[a.id]?0:1,ub=used[b.id]?0:1;
+    if(ua!==ub)return ua-ub;
+    return a.grade<b.grade?-1:1;
+  });
+  var html='<div style="max-height:60vh;overflow:auto">'
+    +'<div class="q" style="border:none;padding:0 0 10px"><div class="bd" style="font-size:13.5px;color:var(--fg2)">'+esc(r.body.slice(0,180))+(r.body.length>180?'…':'')+'</div></div>'
+    +list.map(function(tp){
+      var on=(tp.id===cur);
+      return '<div class="kwedit" style="cursor:pointer" data-pick="'+tp.id+'">'
+        +'<span class="nm">'+esc(tp.name)+' <span style="font-weight:400;color:var(--muted);font-size:12px">'+esc(tp.grade)+'</span></span>'
+        +'<span style="font-size:12px;color:var(--muted)">'+(on?'当前':'')+'</span>'
+        +(on?'<span style="color:var(--pri);font-weight:800">✓</span>':'<span></span>')
+        +'</div>';
+    }).join('')
+    +'</div>';
+  var mask=document.createElement('div');
+  mask.setAttribute('style','position:fixed;inset:0;z-index:200;background:rgba(16,24,40,.45);display:flex;align-items:center;justify-content:center;padding:18px');
+  mask.innerHTML='<div style="background:#fff;border-radius:18px;padding:16px;width:100%;max-width:420px;max-height:86vh;display:flex;flex-direction:column">'
+    +'<div style="font-weight:800;font-size:16px;margin-bottom:11px">把这道题归到哪个知识点？</div>'
+    +'<div style="flex:1;overflow:auto">'+html+'</div>'
+    +'<button class="btn grey block" style="margin-top:12px" id="mvCancel">取消</button></div>';
+  document.body.appendChild(mask);
+  var close=function(){mask.remove()};
+  mask.addEventListener('click',function(e){if(e.target===mask)close()});
+  mask.querySelector('#mvCancel').onclick=close;
+  $$('[data-pick]',mask).forEach(function(el){
+    el.onclick=function(){
+      var id=el.getAttribute('data-pick');
+      if(id===r.topic)delete OVERRIDE[idx]; else OVERRIDE[idx]=id;
+      close();paintStats();paintOut();toast('已归到「'+effName(r)+'」','ok');
+    };
+  });
+}
+
+function paintOut(){
+  if(!R)return;
+  var box=$('#out');
+  if(VIEW==='list'){
+    box.innerHTML=R.rows.map(function(r){
+      return '<div class="topic" style="border-color:var(--line)"><div class="tb" style="padding:10px 13px">'+qBlock(r)+'</div></div>';
+    }).join('');
+    bindQ(box);return;
+  }
+  if(VIEW==='check'){
+    var need=R.rows.filter(function(r){return r.conf==='unsure'||r.conf==='weak'});
+    if(!need.length){box.innerHTML='<div class="ok">🎉 没有需要核对的题目，全部判断都比较明确。</div>';return}
+    var byId={};
+    need.forEach(function(r){
+      var id=effTopic(r);
+      byId[id]=byId[id]||{name:effName(r),items:[]};
+      byId[id].items.push(r);
+    });
+    box.innerHTML='<div class="note">下面 '+need.length+' 题的关键词依据不够强，或被两个知识点同时命中。<b>建议扫一眼，判错的点「换个类别」。</b></div>'
+      +Object.keys(byId).map(function(k){
+        var g=byId[k];
+        return '<div class="topic open"><div class="th"><span class="nm">'+esc(g.name)+'</span><span class="cnt">'+g.items.length+'</span></div>'
+          +'<div class="tb">'+g.items.map(qBlock).join('')+'</div></div>';
+      }).join('');
+    bindQ(box);return;
+  }
+  /* 按知识点分组 */
+  var byId={};
+  R.rows.forEach(function(r){
+    var id=effTopic(r);
+    byId[id]=byId[id]||{id:id,name:effName(r),grade:'',items:[]};
+    byId[id].items.push(r);
+  });
+  var groups=Object.keys(byId).map(function(k){return byId[k]}).sort(function(a,b){
+    if(a.id==='__none__')return 1;
+    if(b.id==='__none__')return -1;
+    return b.items.length-a.items.length;
+  });
+  box.innerHTML=groups.map(function(g,gi){
+    var tp=TOPICS.filter(function(x){return x.id===g.id})[0];
+    return '<div class="topic'+(gi===0?' open':'')+'" data-g="'+g.id+'">'
+      +'<div class="th"><span class="arw">▶</span>'
+      +'<span class="nm">'+esc(g.name)+(tp?' <i>'+esc(tp.grade)+'</i>':'')+'</span>'
+      +'<span class="cnt">'+g.items.length+' 题</span></div>'
+      +'<div class="tb">'+g.items.map(qBlock).join('')+'</div></div>';
+  }).join('');
+  $$('.topic>.th',box).forEach(function(th){
+    th.onclick=function(){ th.parentNode.classList.toggle('open') };
+  });
+  bindQ(box);
+}
+
+/* ---- 导出 ---- */
+function groupsOf(){
+  var byId={};
+  R.rows.forEach(function(r){
+    var id=effTopic(r);
+    byId[id]=byId[id]||{id:id,name:effName(r),items:[]};
+    byId[id].items.push(r);
+  });
+  return Object.keys(byId).map(function(k){return byId[k]}).sort(function(a,b){
+    if(a.id==='__none__')return 1;
+    if(b.id==='__none__')return -1;
+    return b.items.length-a.items.length;
+  });
+}
+$('#btnCopy').onclick=function(){
+  if(!R){toast('先分组','err');return}
+  var gs=groupsOf();
+  var t=gs.map(function(g){
+    return '【'+g.name+'】共 '+g.items.length+' 题\n'
+      +g.items.map(function(r){return '  '+(r.no||r.idx)+'. '+r.body}).join('\n');
+  }).join('\n\n');
+  function fb(){
+    var ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy');toast('已复制分组文本','ok')}catch(e){toast('复制失败，请手动全选','err')}
+    ta.remove();
+  }
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(function(){toast('已复制，可粘贴到 Word','ok')},fb);
+  else fb();
+};
+$('#btnDoc').onclick=function(){
+  if(!R){toast('先分组','err');return}
+  var gs=groupsOf();
+  var body='<h1 style="font-size:16pt;text-align:center;margin:0 0 4pt">按知识点分组的题目</h1>'
+    +'<p style="text-align:center;font-size:10.5pt;color:#666;margin:0 0 14pt">共 '+R.rows.length+' 题 · '+gs.filter(function(g){return g.id!=='__none__'}).length+' 个知识点 · 生成于 '+new Date().toLocaleDateString('zh-CN')+'</p>';
+  gs.forEach(function(g){
+    body+='<h2 style="font-size:13pt;margin:16pt 0 6pt;border-bottom:1.5pt solid #7048E8;padding-bottom:3pt">'
+      +esc(g.name)+'（'+g.items.length+' 题）</h2>';
+    g.items.forEach(function(r){
+      body+='<p style="margin:0 0 7pt;line-height:1.75;font-size:11pt">'
+        +'<b>'+(r.no||r.idx)+'．</b>'+esc(r.body)+'</p>';
+    });
+  });
+  var html='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">'
+    +'<head><meta charset="utf-8"><title>按知识点分组的题目</title>'
+    +'<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]-->'
+    +'<style>@page{size:A4;margin:2.2cm 2.4cm}body{font-family:"宋体",SimSun,serif;font-size:11pt;line-height:1.75}'
+    +'p{margin:0 0 7pt}</style></head><body>'+body+'</body></html>';
+  download('按知识点分组的题目.doc',html,'application/msword');
+  toast('已导出 Word','ok');
+};
+$('#btnCsv').onclick=function(){
+  if(!R){toast('先分组','err');return}
+  var lines=[['题号','题型','知识点','年级','判断依据','置信度','命中关键词','题目']];
+  R.rows.forEach(function(r){
+    var id=effTopic(r),tp=TOPICS.filter(function(x){return x.id===id})[0];
+    var confTxt=r.conf==='unsure'?'有歧义':(r.conf==='weak'?'依据弱':'明确');
+    if(OVERRIDE[r.idx])confTxt='已手改';
+    lines.push([r.no||r.idx,r.type,effName(r),tp?tp.grade:'',r.topic?'自动判断':'未识别',confTxt,(r.kws||[]).join('、'),r.body]);
+  });
+  var csv=lines.map(function(row){
+    return row.map(function(v){
+      v=String(v==null?'':v);
+      return /[",\n]/.test(v)?('"'+v.replace(/"/g,'""')+'"'):v;
+    }).join(',');
+  }).join('\r\n');
+  download('题目知识点归类.csv','\ufeff'+csv,'text/csv;charset=utf-8');
+  toast('已导出表格','ok');
+};
+</script>
+</body>
+</html>
